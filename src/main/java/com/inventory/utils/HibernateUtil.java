@@ -11,10 +11,9 @@ public class HibernateUtil {
     private static SessionFactory buildSessionFactory() {
         try {
             Configuration cfg = new Configuration().configure();
-             // loads hibernate.cfg.xml from classpath
             cfg.addAnnotatedClass(com.inventory.models.Sale.class);
-             StandardServiceRegistry serviceRegistry =
-                    new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).build();
+            StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                    .applySettings(cfg.getProperties()).build();
             return cfg.buildSessionFactory(serviceRegistry);
         } catch (Throwable ex) {
             System.err.println("Initial SessionFactory creation failed: " + ex);

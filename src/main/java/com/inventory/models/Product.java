@@ -3,58 +3,44 @@ package com.inventory.models;
 import java.math.BigDecimal;
 
 public class Product {
-    private int productId, quantityInStock, distributorId, reorderLevel, unitsPerStrip;
-    private String productName, category, manufacturer, batchNumber, strength, unit, shelfLocation, stripType;
+
+    // PROPERTIES
+    private int productId, quantity, subQuantity, distributorId, userId, reorderLevel;
+    private String productName, category, manufacturer, batchNumber, strength, unit, location;
     private java.sql.Date manufacturingDate, expiryDate;
-    private BigDecimal purchasePrice, sellingPrice;
-    private java.sql.Timestamp createdAt, updatedAt;
+    private BigDecimal purchasingPrice, sellingPrice;
+    private java.sql.Timestamp createdAt;
 
     public Product() {
     }
 
-    public Product(int productId, String productName, String category, String manufacturer, String batchNumber,
-                   String strength, String unit, String shelfLocation,
-                   java.sql.Date manufacturingDate, java.sql.Date expiryDate,
-                   int quantityInStock, int reorderLevel,
-                   BigDecimal purchasePrice, BigDecimal sellingPrice,
-                   int distributorId,
-                   java.sql.Timestamp createdAt, java.sql.Timestamp updatedAt) {
+    // CONSTRUCTOR
+    public Product(int productId, String productName, int distributorId, Integer userId, int quantity, Integer subQuantity,
+            String unit, String location, String strength, String category, String manufacturer,
+            java.sql.Date manufacturingDate, java.sql.Date expiryDate, BigDecimal purchasingPrice,
+            String batchNumber, BigDecimal sellingPrice, Integer reorderLevel, java.sql.Timestamp createdAt) {
 
         this.productId = productId;
         this.productName = productName;
+        this.distributorId = distributorId;
+        this.userId = userId != null ? userId : 0;
+        this.quantity = quantity;
+        this.subQuantity = subQuantity != null ? subQuantity : 0;
+        this.unit = unit;
+        this.location = location;
+        this.strength = strength;
         this.category = category;
         this.manufacturer = manufacturer;
-        this.batchNumber = batchNumber;
-        this.strength = strength;
-        this.unit = unit;
-        this.shelfLocation = shelfLocation;
         this.manufacturingDate = manufacturingDate;
         this.expiryDate = expiryDate;
-        this.quantityInStock = quantityInStock;
-        this.reorderLevel = reorderLevel;
-        this.purchasePrice = purchasePrice;
+        this.purchasingPrice = purchasingPrice;
+        this.batchNumber = batchNumber;
         this.sellingPrice = sellingPrice;
-        this.distributorId = distributorId;
+        this.reorderLevel = reorderLevel != null ? reorderLevel : 0;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
-    public String getStripType() {
-        return stripType;
-    }
-
-    public void setStripType(String stripType) {
-        this.stripType = stripType;
-    }
-
-    public int getUnitsPerStrip() {
-        return unitsPerStrip;
-    }
-
-    public void setUnitsPerStrip(int unitsPerStrip) {
-        this.unitsPerStrip = unitsPerStrip;
-    }
-
+    // GETTERS AND SETTERS
     public int getProductId() {
         return productId;
     }
@@ -111,12 +97,12 @@ public class Product {
         this.unit = unit;
     }
 
-    public String getShelfLocation() {
-        return shelfLocation;
+    public String getLocation() {
+        return location;
     }
 
-    public void setShelfLocation(String shelfLocation) {
-        this.shelfLocation = shelfLocation;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public java.sql.Date getManufacturingDate() {
@@ -135,12 +121,28 @@ public class Product {
         this.expiryDate = expiryDate;
     }
 
-    public int getQuantityInStock() {
-        return quantityInStock;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setQuantityInStock(int quantityInStock) {
-        this.quantityInStock = quantityInStock;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public int getSubQuantity() {
+        return subQuantity;
+    }
+
+    public void setSubQuantity(int subQuantity) {
+        this.subQuantity = subQuantity;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public int getReorderLevel() {
@@ -151,12 +153,12 @@ public class Product {
         this.reorderLevel = reorderLevel;
     }
 
-    public BigDecimal getPurchasePrice() {
-        return purchasePrice;
+    public BigDecimal getPurchasingPrice() {
+        return purchasingPrice;
     }
 
-    public void setPurchasePrice(BigDecimal purchasePrice) {
-        this.purchasePrice = purchasePrice;
+    public void setPurchasingPrice(BigDecimal purchasingPrice) {
+        this.purchasingPrice = purchasingPrice;
     }
 
     public BigDecimal getSellingPrice() {
@@ -181,13 +183,5 @@ public class Product {
 
     public void setCreatedAt(java.sql.Timestamp createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public java.sql.Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(java.sql.Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

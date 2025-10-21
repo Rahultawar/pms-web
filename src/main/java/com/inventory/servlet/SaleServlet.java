@@ -24,7 +24,8 @@ public class SaleServlet extends HttpServlet {
     DistributorDAO distributorDAO = new DistributorDAO();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String actionType = request.getParameter("actionType");
         if (actionType == null || actionType.isEmpty()) {
             actionType = "add";
@@ -40,7 +41,15 @@ public class SaleServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
         String deleteIdParam = request.getParameter("deleteId");
         if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
             try {
@@ -48,9 +57,10 @@ public class SaleServlet extends HttpServlet {
                 Sale existingSale = saleDAO.getSaleById(deleteId);
                 if (existingSale != null) {
                     // Restore product quantity before deleting sale
-                    productDAO.addProductQuantity(existingSale.getProductId(), existingSale.getQuantity());
+                    // productDAO.addProductQuantity(existingSale.getProductId(),
+                    // existingSale.getQuantity());
                 }
-                saleDAO.deleteSale(deleteId);
+//                saleDAO.deleteSale(deleteId);
                 response.sendRedirect("SaleServlet?status=deleted");
                 return;
             } catch (NumberFormatException ignored) {
@@ -88,21 +98,29 @@ public class SaleServlet extends HttpServlet {
         request.setAttribute("noOfPages", totalPages);
         request.setAttribute("currentPage", page);
 
-        request.setAttribute("productList", productDAO.getAllProduct());
-        request.setAttribute("distributorList", distributorDAO.getAllDistributor());
+        request.setAttribute("productList", productDAO.getProductsPaginated(0, 1000, userId));
+        request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
         dispatcher.forward(request, response);
     }
 
-    private void handleAddSale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void handleAddSale(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
         Sale sale = new Sale();
         try {
             Product product = null;
             String productParam = request.getParameter("selProduct");
             if (productParam != null && !productParam.isEmpty()) {
                 int productId = Integer.parseInt(productParam);
-                product = productDAO.getProductById(productId);
+                product = productDAO.getProductById(productId, userId);
             }
 
             populateSaleFromRequest(request, sale, product);
@@ -117,9 +135,10 @@ public class SaleServlet extends HttpServlet {
 
             // Check if sufficient stock is available
             int quantityToSell = sale.getQuantity();
-            if (product.getQuantityInStock() < quantityToSell) {
+            if (product.getQuantity() < quantityToSell) {
                 request.setAttribute("saleDetails", sale);
-                request.setAttribute("errorMessage", "Insufficient stock. Available: " + product.getQuantityInStock() + ", Required: " + quantityToSell);
+                request.setAttribute("errorMessage", "Insufficient stock. Available: " + product.getQuantity()
+                        + ", Required: " + quantityToSell);
                 forwardToSaleJsp(request, response);
                 return;
             }
@@ -142,7 +161,15 @@ public class SaleServlet extends HttpServlet {
         }
     }
 
-    private void handleUpdateSale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void handleUpdateSale(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
         Sale sale = new Sale();
         try {
             int saleId = Integer.parseInt(request.getParameter("saleId"));
@@ -161,7 +188,7 @@ public class SaleServlet extends HttpServlet {
             String productParam = request.getParameter("selProduct");
             if (productParam != null && !productParam.isEmpty()) {
                 int productId = Integer.parseInt(productParam);
-                product = productDAO.getProductById(productId);
+                product = productDAO.getProductById(productId, userId);
             }
 
             populateSaleFromRequest(request, sale, product);
@@ -182,12 +209,13 @@ public class SaleServlet extends HttpServlet {
             // If product changed or quantity changed, adjust inventory
             if (oldProductId != newProductId) {
                 // Restore old product quantity
-                productDAO.addProductQuantity(oldProductId, oldQuantity);
+                // productDAO.addProductQuantity(oldProductId, oldQuantity);
                 // Deduct from new product
                 if (product != null) {
-                    if (product.getQuantityInStock() < newQuantity) {
+                    if (product.getQuantity() < newQuantity) {
                         request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage", "Insufficient stock for new product. Available: " + product.getQuantityInStock());
+                        request.setAttribute("errorMessage",
+                                "Insufficient stock for new product. Available: " + product.getQuantity());
                         forwardToSaleJsp(request, response);
                         return;
                     }
@@ -206,9 +234,10 @@ public class SaleServlet extends HttpServlet {
                 int difference = newQuantity - oldQuantity;
                 if (difference > 0) {
                     // Need to deduct more
-                    if (product != null && product.getQuantityInStock() < difference) {
+                    if (product != null && product.getQuantity() < difference) {
                         request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage", "Insufficient stock. Available: " + product.getQuantityInStock() + ", Additional needed: " + difference);
+                        request.setAttribute("errorMessage", "Insufficient stock. Available: "
+                                + product.getQuantity() + ", Additional needed: " + difference);
                         forwardToSaleJsp(request, response);
                         return;
                     }
@@ -221,11 +250,11 @@ public class SaleServlet extends HttpServlet {
                     }
                 } else if (difference < 0) {
                     // Return some quantity
-                    productDAO.addProductQuantity(newProductId, Math.abs(difference));
+                    // productDAO.addProductQuantity(newProductId, Math.abs(difference));
                 }
             }
 
-            saleDAO.updateSale(sale);
+//            saleDAO.updateSale(sale);
 
             response.sendRedirect("SaleServlet?status=success");
         } catch (Exception e) {
@@ -257,21 +286,21 @@ public class SaleServlet extends HttpServlet {
         if (unitPrice == null && product != null) {
             unitPrice = product.getSellingPrice();
         }
-        sale.setUnitPrice(unitPrice);
+//        sale.setUnitPrice(unitPrice);
 
         String unit = request.getParameter("txtUnit");
         if ((unit == null || unit.isEmpty()) && product != null) {
             unit = product.getUnit();
         }
-        sale.setUnit(unit);
+//        sale.setUnit(unit);
 
         String unitsPerStripParam = request.getParameter("txtUnitPerStrip");
         if ((unitsPerStripParam == null || unitsPerStripParam.isEmpty()) && product != null) {
-            sale.setUnitsPerStrip(product.getUnitsPerStrip());
+//            sale.setUnitsPerStrip(product.getUnitsPerStrip());
         } else if (unitsPerStripParam != null && !unitsPerStripParam.isEmpty()) {
-            sale.setUnitsPerStrip(Integer.parseInt(unitsPerStripParam));
+//            sale.setUnitsPerStrip(Integer.parseInt(unitsPerStripParam));
         } else {
-            sale.setUnitsPerStrip(null);
+//            sale.setUnitsPerStrip(null);
         }
 
         BigDecimal discountAmount = BigDecimalUtil.parseBigDecimal(request.getParameter("txtDiscountAmount"));
@@ -285,9 +314,17 @@ public class SaleServlet extends HttpServlet {
         sale.setStatus(given.compareTo(total) >= 0 ? Sale.SaleStatus.completed : Sale.SaleStatus.pending);
     }
 
-    private void forwardToSaleJsp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("productList", productDAO.getAllProduct());
-        request.setAttribute("distributorList", distributorDAO.getAllDistributor());
+    private void forwardToSaleJsp(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
+        request.setAttribute("productList", productDAO.getProductsPaginated(0, 1000, userId));
+        request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
         request.setAttribute("saleList", saleDAO.getSalesPaginated(0, 5));
         request.setAttribute("noOfPages", (int) Math.ceil(saleDAO.countSale() / 5.0));
         request.setAttribute("currentPage", 1);

@@ -4,21 +4,23 @@
         "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <!-- JDBC connection -->
+        <!-- JDBC CONNECTION -->
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/pms</property>
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.connection.password"></property>
 
-        <!-- Dialect -->
+        <!-- DIALECT -->
         <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
 
-        <!-- Pooling / behavior -->
+        
         <property name="hibernate.hbm2ddl.auto">validate</property>
-        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">false</property>
         <property name="hibernate.format_sql">false</property>
 
-        <mapping class="com.inventory.models.Sale"/>
+        <!-- MAPPED CLASSES -->
+<!--        <mapping class="com.inventory.models.Sale"/>-->
+        <mapping class="com.inventory.models.User"/>
         <mapping class="com.inventory.models.Product"/>
         <mapping class="com.inventory.models.Distributor"/>
 

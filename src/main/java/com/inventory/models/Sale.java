@@ -1,6 +1,9 @@
 package com.inventory.models;
 
 import javax.persistence.*;
+
+import com.inventory.dao.ProductDAO;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,7 +15,9 @@ import java.util.UUID;
 public class Sale implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public enum SaleStatus {pending, completed}
+    public enum SaleStatus {
+        pending, completed
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,23 +39,12 @@ public class Sale implements Serializable {
     @Column(name = "quantity", nullable = false)
     private Integer quantity = 1;
 
-    @Column(name = "unitsPerStrip")
-    private Integer unitsPerStrip;
-
-    @Column(name = "unit", length = 50)
-    private String unit;
-
-    @Column(name = "unitPrice", precision = 10, scale = 2, nullable = false)
-    private BigDecimal unitPrice;
-
     @Column(name = "discountAmount", precision = 10, scale = 2, nullable = false)
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
-    // DB-generated stored column — read-only to JPA
     @Column(name = "totalAmount", precision = 12, scale = 2, insertable = false, updatable = false)
     private BigDecimal totalAmount;
 
-    // Amount given by customer (editable)
     @Column(name = "amountGiven", precision = 12, scale = 2, nullable = false)
     private BigDecimal amountGiven = BigDecimal.ZERO;
 
@@ -67,19 +61,11 @@ public class Sale implements Serializable {
     @Column(name = "mobileNumber", length = 20)
     private String mobileNumber;
 
-    // soft-delete
     @Column(name = "deletedFlag", nullable = false)
     private Boolean deletedFlag = false;
 
-    @Column(name = "deletedAt")
-    private LocalDateTime deletedAt;
-
-    // DB-managed timestamps
     @Column(name = "createdAt", insertable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updatedAt", insertable = false, updatable = false)
-    private LocalDateTime updatedAt;
 
     public Sale() {
     }
@@ -100,14 +86,11 @@ public class Sale implements Serializable {
         }
     }
 
-    /**
-     * Compute expected total same as DB expression: round(quantity * unitPrice - discountAmount, 2)
-     * Useful for server-side validation before persist/update.
-     */
     @Transient
     public BigDecimal computeExpectedTotal() {
+        BigDecimal sellingPrice = ProductDAO.getSellingPriceById(productId);
         BigDecimal qty = BigDecimal.valueOf(quantity == null ? 0 : quantity);
-        BigDecimal price = unitPrice == null ? BigDecimal.ZERO : unitPrice;
+        BigDecimal price = sellingPrice == null ? BigDecimal.ZERO : sellingPrice;
         BigDecimal discount = discountAmount == null ? BigDecimal.ZERO : discountAmount;
         BigDecimal calc = price.multiply(qty).subtract(discount);
         if (calc.compareTo(BigDecimal.ZERO) < 0) {
@@ -117,12 +100,11 @@ public class Sale implements Serializable {
     }
 
     // GETTER / SETTER
-
     public Integer getSaleId() {
         return saleId;
     }
 
-    public void setSaleId(Integer saleId){
+    public void setSaleId(Integer saleId) {
         this.saleId = saleId;
     }
 
@@ -132,7 +114,7 @@ public class Sale implements Serializable {
 
     public void setSaleUuid(String saleUuid) {
         this.saleUuid = saleUuid;
-    } // avoid changing after persist
+    }
 
     public Integer getProductId() {
         return productId;
@@ -166,30 +148,6 @@ public class Sale implements Serializable {
         this.quantity = quantity;
     }
 
-    public Integer getUnitsPerStrip() {
-        return unitsPerStrip;
-    }
-
-    public void setUnitsPerStrip(Integer unitsPerStrip) {
-        this.unitsPerStrip = unitsPerStrip;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
     public BigDecimal getDiscountAmount() {
         return discountAmount;
     }
@@ -200,7 +158,7 @@ public class Sale implements Serializable {
 
     public BigDecimal getTotalAmount() {
         return totalAmount;
-    } // read-only
+    }
 
     public BigDecimal getAmountGiven() {
         return amountGiven;
@@ -250,19 +208,7 @@ public class Sale implements Serializable {
         this.deletedFlag = deletedFlag;
     }
 
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
     }
 }

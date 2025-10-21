@@ -19,15 +19,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Product</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <c:url var="bootstrapCss" value="/assets/css/bootstrap.min.css"/>
+    <c:url var="fontAwesomeCss" value="/assets/css/fontawesome.min.css"/>
+    <c:url var="themeCss" value="/assets/css/theme.css"/>
+    <c:url var="bootstrapJs" value="/assets/js/bootstrap.bundle.min.js"/>
+    <c:url var="appJs" value="/assets/js/app.js"/>
+    <c:url var="interRegular" value="/assets/fonts/inter/Inter-Regular.woff2"/>
+    <link rel="stylesheet" href="${bootstrapCss}"/>
+    <link rel="stylesheet" href="${fontAwesomeCss}"/>
+    <link rel="stylesheet" href="${themeCss}"/>
+    <link rel="preload" href="${interRegular}" as="font" type="font/woff2" crossorigin>
 
-    <style src="./assets/css/style.css"></style>
     <c:url var="styleUrl" value="/assets/css/style.css"/>
     <link rel="stylesheet" href="${styleUrl}"/>
     <c:url var="enhancedStyleUrl" value="/assets/css/enhanced-ui.css"/>
     <link rel="stylesheet" href="${enhancedStyleUrl}"/>
+    <c:url var="noAnimationsUrl" value="/assets/css/no-animations.css"/>
+    <link rel="stylesheet" href="${noAnimationsUrl}"/>
     <c:url var="iconUrl" value="/assets/images/logo-modern.svg"/>
     <c:url var="faviconUrl" value="/assets/images/favicon.svg"/>
     <link rel="icon" href="${faviconUrl}" type="image/svg+xml">
@@ -36,27 +44,18 @@
 </head>
 <body data-page="product">
 <!-- HEADER -->
-<header class="p-2 mb-3">
-    <div class="container">
-        <div class="row justify-content-end align-items-center">
-            <div class="col-md-5">
-                <form class="d-flex mb-0">
-                    <input type="search" class="form-control w-75" id="searchBox" placeholder="Search..."
-                           aria-label="Search">
-                </form>
-            </div>
-            <div class="col-md-5">
-                <div class="dropdown d-flex justify-content-end">
+<header class="app-header">
+    <div class="container-fluid">
+        <div class="header-inner">
+            <div class="header-actions ms-auto">
+                <div class="dropdown">
                     <a href="#" class="d-block text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
                        aria-expanded="false">
-                        <img src="${profilePicUrl}" alt="Profile" width="32" height="32"
-                             class="rounded-circle">
+                        <img src="${profilePicUrl}" alt="Profile" width="36" height="36" class="rounded-circle shadow-sm">
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end text-small">
                         <li><a class="dropdown-item" href="#">Profile</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="${logoutUrl}">Log out</a></li>
                     </ul>
                 </div>
@@ -66,14 +65,15 @@
 </header>
 <!-- /HEADER -->
 
+<div class="app-shell">
 <!-- SIDEBAR -->
-<div id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
+<aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
     <b>
         <a href="DashboardServlet"
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
             <img src="${iconUrl}" alt="Logo" width="40" height="40"
                  style="border-radius: 8px;">
-            <span class="fs-6 ms-2">Mahadev Medical Store</span>
+            <span class="fs-6 ms-2">${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}</span>
         </a>
     </b>
     <hr>
@@ -94,16 +94,16 @@
             </a>
         </li>
         <li>
-            <a href="sale.jsp" class="nav-link">
+            <a href="SaleServlet" class="nav-link">
                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
             </a>
         </li>
     </ul>
-</div>
+</aside>
 <!-- /SIDEBAR -->
 
 <!-- MAIN CONTENT -->
-<div id="content-wrapper" class="flex-fill">
+<main id="content-wrapper" class="flex-fill">
     <div class="container-fluid">
         <div class="row align-items-center mb-3">
             <div class="col-md-8 col-12 mb-2 mb-md-0">
@@ -124,17 +124,19 @@
         <div>
             <c:choose>
                 <c:when test="${empty productList}">
-                    <div id="noProductAvailable">
-                        <h2 style="margin-bottom: 10px; color: #4CAF50;">No Products Available</h2>
-                        <p style="color: #777;">You have not added any products yet. Start by adding new products to
-                            manage
-                            your inventory efficiently.</p>
+                    <div id="noProductAvailable" class="empty-state">
+                        <h2 class="empty-state__title">No products available</h2>
+                        <p class="empty-state__subtitle">Add your first product to start tracking inventory and
+                            availability in one place.</p>
+                        <button class="btn btn-success" data-action="show-form" data-mode="add">
+                            <i class="fas fa-plus-circle me-2"></i>Add Product
+                        </button>
                     </div>
                 </c:when>
                 <c:otherwise>
-                    <div id="productTable">
+                    <div id="productTable" class="card table-card">
                         <div class="table-responsive">
-                            <table class="table table-hover table-bordered shadow-sm rounded">
+                            <table class="table table-hover align-middle">
                             <thead class="table-light">
                             <tr>
                                 <th>Product Name</th>
@@ -154,12 +156,12 @@
                                     <td>${product.category}</td>
                                     <td>${product.manufacturingDate}</td>
                                     <td>${product.expiryDate}</td>
-                                    <td>${product.quantityInStock}</td>
+                                    <td>${product.quantity}</td>
                                     <td>${product.sellingPrice}</td>
                                     <td><a href="ProductServlet?id=${product.productId}" title="Edit"><i
                                             class="fas fa-edit"></i></a></td>
-                                    <td><a href="ProductServlet?deleteId=${product.productId}"
-                                           onclick="getAlertBox()" title="Delete"><i class="fas fa-trash-alt"></i></a>
+                     <td><a href="ProductServlet?deleteId=${product.productId}"
+                         data-confirm="Are you sure you want to delete this product?" title="Delete"><i class="fas fa-trash-alt"></i></a>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -168,7 +170,7 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div class="pagination-wrapper">
+                        <div class="pagination-wrapper card-footer bg-transparent">
                             <c:if test="${noOfPages > 1}">
                                 <c:forEach begin="1" end="${noOfPages}" var="i">
                                     <c:choose>
@@ -190,13 +192,14 @@
             </c:choose>
 
             <!-- PRODUCT FORM -->
-            <div id="productForm">
+            <div id="productForm" class="card form-card">
                 <h5 class="card-title mb-3" id="formTitle">Add New Product</h5>
                 <form action="ProductServlet" method="post">
                     <input type="hidden" id="productId" name="productId"
                            value="${requestScope.productDetails.productId}">
                     <input type="hidden" name="actionType"
                            value="${requestScope.productDetails != null ? 'update' : 'add'}">
+                    <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
 
                     <div class="row">
                         <!-- First Column -->
@@ -341,10 +344,10 @@
                             </div>
 
                             <div class="form-floating mb-3">
-                                <input type="text" class="form-control" id="shelfLocation" name="txtShelfLocation"
-                                       placeholder="Shelf Location"
-                                       value="${requestScope.productDetails.shelfLocation}">
-                                <label for="shelfLocation">Shelf Location</label>
+                                <input type="text" class="form-control" id="location" name="txtLocation"
+                                       placeholder="Location"
+                                       value="${requestScope.productDetails.location}">
+                                <label for="location">Location</label>
                             </div>
 
                             <div class="form-floating mb-3">
@@ -360,18 +363,12 @@
                                 <label for="distributorId">Distributor</label>
                             </div>
 
-                <div class="form-floating mb-3 stripDetails" style="display:none;">
-                                <select name="stripType" id="stripType" class="form-control"
-                                        data-strip-required="true" disabled>
-                                    <option value="" disabled <c:if test="${p == null || p.stripType == null}">selected</c:if>>Select Strip Type</option>
-                    <option value="Tablet"
-                        <c:if test="${p != null and p.stripType == 'Tablet'}">selected</c:if>>Tablet
-                    </option>
-                    <option value="Capsule"
-                        <c:if test="${p != null and p.stripType == 'Capsule'}">selected</c:if>>Capsule
-                    </option>
-                                </select>
-                                <label for="stripType">Strip Type</label>
+                <div class="form-floating mb-3 stripDetails">
+                                <input type="number" class="form-control" min="0" id="subQuantity"
+                                       name="txtSubQuantity" placeholder="Sub Quantity (Units in Strip)"
+                                       value="${requestScope.productDetails.subQuantity > 0 ? requestScope.productDetails.subQuantity : ''}"
+                                       data-strip-required="false" disabled>
+                                <label for="subQuantity">Sub Quantity (Units in Strip)</label>
                             </div>
                         </div>
 
@@ -392,10 +389,10 @@
                             </div>
 
                             <div class="form-floating mb-3">
-                                <input type="number" class="form-control" id="quantityInStock" name="txtQuantityInStock"
-                                       placeholder="Quantity in Stock"
-                                       value="${requestScope.productDetails.quantityInStock}" required>
-                                <label for="quantityInStock">Quantity in Stock</label>
+                                <input type="number" class="form-control" id="quantity" name="txtQuantity"
+                                       placeholder="Quantity"
+                                       value="${requestScope.productDetails.quantity}" required>
+                                <label for="quantity">Quantity</label>
                             </div>
 
                             <div class="form-floating mb-3">
@@ -406,10 +403,10 @@
                             </div>
 
                             <div class="form-floating mb-3">
-                                <input type="number" step="0.01" class="form-control" id="purchasePrice"
-                                       name="txtPurchasePrice" placeholder="Purchase Price"
-                                       value="${requestScope.productDetails.purchasePrice}" required>
-                                <label for="purchasePrice">Purchase Price</label>
+                                <input type="number" step="0.01" class="form-control" id="purchasingPrice"
+                                       name="txtPurchasingPrice" placeholder="Purchasing Price"
+                                       value="${requestScope.productDetails.purchasingPrice}" required>
+                                <label for="purchasingPrice">Purchasing Price</label>
                             </div>
 
                             <div class="form-floating mb-3">
@@ -462,29 +459,25 @@
                                 <label for="unit">Unit</label>
                             </div>
 
-                            <div class="form-floating mb-3 stripDetails" style="display:none;">
-                                <input type="number" class="form-control" min="1" id="unitsPerStrip"
-                                       name="unitsPerStrip" placeholder="Units Per Strip"
-                                       value="${p != null ? (p.unitsPerStrip > 0 ? p.unitsPerStrip : '') : ''}"
-                                       data-strip-required="true" disabled>
-                                <label for="unitsPerStrip">Units Per Strip</label>
-                            </div>
+
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-success me-2">Save Product</button>
-                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
+</main>
 <!-- /MAIN CONTENT -->
 
+</div>
+
 <!-- Shared JS -->
-<script src="assets/js/app.js"></script>
+                <script src="${appJs}"></script>
 
 <c:if test="${not empty requestScope.productDetails}">
     <script>
@@ -495,7 +488,7 @@
     </script>
 </c:if>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${bootstrapJs}"></script>
 
 
 </body>

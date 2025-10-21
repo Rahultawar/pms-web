@@ -50,11 +50,19 @@
     function toggleStripDetails() {
         var unitEl = document.getElementById('unit');
         var stripDetails = document.getElementsByClassName('stripDetails');
-        if (!unitEl || !stripDetails) return;
+        if (!unitEl || !stripDetails.length) return;
         var show = unitEl.value && unitEl.value.toLowerCase() === 'strip';
+            if (!unitEl.dataset.stripBound) {
+                unitEl.addEventListener('change', toggleStripDetails);
+                unitEl.dataset.stripBound = 'true';
+            }
         for (var i = 0; i < stripDetails.length; i++) {
             var container = stripDetails[i];
-            container.style.display = show ? 'block' : 'none';
+            if (show) {
+                container.classList.add('is-visible');
+            } else {
+                container.classList.remove('is-visible');
+            }
             var field = container.querySelector('input, select, textarea');
             if (!field) continue;
             if (show) {
@@ -78,6 +86,17 @@
 
     function showForm(mode) {
         var page = document.body.dataset.page || '';
+        
+        // Hide sidebar and header for all form modes
+        var sidebar = document.getElementById('sidebar');
+        var header = document.querySelector('.app-header');
+        if (sidebar) sidebar.style.display = 'none';
+        if (header) header.style.display = 'none';
+        
+        // Adjust content wrapper margin
+        var contentWrapper = document.getElementById('content-wrapper');
+        if (contentWrapper) contentWrapper.style.marginLeft = '0';
+        
         if (page === 'sale') {
             var saleForm = document.getElementById('saleForm');
             if (!saleForm) return;
@@ -160,13 +179,18 @@
         }, 50);
     }
 
-    function handleDelete(el) {
-        var href = el.getAttribute('href');
-        return confirm('Are you sure you want to delete this item?');
-    }
-
     function bindClicks() {
         document.addEventListener('click', function (e) {
+            var confirmTarget = e.target.closest('[data-confirm]');
+            if (confirmTarget) {
+                var message = confirmTarget.dataset.confirm || 'Are you sure?';
+                if (!window.confirm(message)) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+            }
+
             var t = e.target.closest('[data-action]');
             if (!t) return;
             var action = t.dataset.action;

@@ -1,0 +1,12 @@
+/* Disable all animations and transitions globally */
+*, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+}
+
+/* Ensure immediate state changes */
+.loading, .animate-float {
+    animation: none !important;
+}

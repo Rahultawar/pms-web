@@ -3,6 +3,7 @@ package com.inventory.servlet;
 import com.inventory.dao.ProductDAO;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.SaleDAO;
+import com.inventory.dao.UserDAO;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -16,19 +17,27 @@ import java.io.IOException;
 @WebServlet("/DashboardServlet")
 public class DashboardServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // SESSION VALIDATION
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("username") == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
+        // OBJECTS OF DAOs
         ProductDAO productDAO = new ProductDAO();
         DistributorDAO distributorDAO = new DistributorDAO();
+        UserDAO userDAO = new UserDAO();
         SaleDAO saleDAO = new SaleDAO();
+
+        int userId = (Integer) session.getAttribute("userId");
+
+        // FETCH COUNTS
         int saleCount = saleDAO.countSale();
-        int productCount = productDAO.countProduct();
-        int distributorCount = distributorDAO.countDistributor();
+        int productCount = productDAO.countProduct(userId);
+        int distributorCount = distributorDAO.countDistributor(userId);
 
         request.setAttribute("productCount", productCount);
         request.setAttribute("distributorCount", distributorCount);
@@ -39,7 +48,8 @@ public class DashboardServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doGet(req, resp);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doGet(request, response);
     }
 }

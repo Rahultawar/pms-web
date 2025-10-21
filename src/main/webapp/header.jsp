@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- login link: goes to local servlet that sets state and redirects -->
-<c:url var="loginUrl" value="/cognitoLogin"/>
+<!-- Login link routes back to the local username/password form -->
+<c:url var="loginUrl" value="/index.jsp"/>
 <a href="${loginUrl}" class="nav-link">Sign in</a>
 
 <!-- Logout form (POST) -->

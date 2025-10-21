@@ -3,14 +3,17 @@ package com.inventory.utils;
 import java.math.BigDecimal;
 
 public class BigDecimalUtil {
-    private BigDecimalUtil() { }
+    private BigDecimalUtil() {
+    }
 
+    // PARSE BIG DECIMAL
     public static BigDecimal parseBigDecimal(String s) {
-        if (s == null) return null;
+        if (s == null)
+            return null;
         s = s.trim();
-        if (s.isEmpty()) return null;
+        if (s.isEmpty())
+            return null;
 
-        // remove grouping separators and non-breaking spaces
         s = s.replace("\u00A0", "").replace(",", "").replace(" ", "");
 
         boolean negative = false;

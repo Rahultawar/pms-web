@@ -1,19 +1,29 @@
 package com.inventory.models;
 
 public class Distributor {
-    private int distributorId;
-    private String distributorName, contactPerson, contactNumber, email, address;
-    private String city, state, pincode;
-    private java.sql.Timestamp createdAt;
-    private boolean active = true; // new field to track activation state, default true
 
-    // Getters and Setters
+    // PROPERTIES
+    private int distributorId;
+    private int userId;
+    private String distributorName, contactPerson, phone, email, address;
+    private String city, state, pinCode;
+    private java.sql.Timestamp createdAt;
+
+    // GETTERS AND SETTERS
     public int getDistributorId() {
         return distributorId;
     }
 
     public void setDistributorId(int distributorId) {
         this.distributorId = distributorId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getDistributorName() {
@@ -32,12 +42,12 @@ public class Distributor {
         this.contactPerson = contactPerson;
     }
 
-    public String getContactNumber() {
-        return contactNumber;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getEmail() {
@@ -72,12 +82,12 @@ public class Distributor {
         this.state = state;
     }
 
-    public String getPincode() {
-        return pincode;
+    public String getPinCode() {
+        return pinCode;
     }
 
-    public void setPincode(String pincode) {
-        this.pincode = pincode;
+    public void setPinCode(String pinCode) {
+        this.pinCode = pinCode;
     }
 
     public void setCreatedAt(java.sql.Timestamp createdAt) {
@@ -86,15 +96,6 @@ public class Distributor {
 
     public java.sql.Timestamp getCreatedAt() {
         return createdAt;
-    }
-
-    // Active flag
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 }
 

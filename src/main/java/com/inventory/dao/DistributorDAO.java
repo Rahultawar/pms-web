@@ -13,27 +13,29 @@ import java.util.List;
 public class DistributorDAO {
 
     // GET ALL DISTRIBUTOR METHOD
-    public List<Distributor> getAllDistributor() {
+    public List<Distributor> getAllDistributor(int userId) {
         List<Distributor> distributorList = new ArrayList<>();
-        String query = "SELECT * FROM distributor";
+        String query = "SELECT * FROM distributor WHERE userId = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()
-        ) {
-            while (resultSet.next()) {
-                Distributor distributor = new Distributor();
-                distributor.setDistributorId(resultSet.getInt("distributorId"));
-                distributor.setDistributorName(resultSet.getString("distributorName"));
-                distributor.setAddress(resultSet.getString("address"));
-                distributor.setContactPerson(resultSet.getString("contactPerson"));
-                distributor.setContactNumber(resultSet.getString("contactNumber"));
-                distributor.setEmail(resultSet.getString("email"));
-                distributor.setCity(resultSet.getString("city"));
-                distributor.setState(resultSet.getString("state"));
-                distributor.setPincode(resultSet.getString("pincode"));
-                distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
+                PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Distributor distributor = new Distributor();
+                    distributor.setDistributorId(resultSet.getInt("distributorId"));
+                    distributor.setDistributorName(resultSet.getString("distributorName"));
+                    distributor.setContactPerson(resultSet.getString("contactPerson"));
+                    distributor.setEmail(resultSet.getString("email"));
+                    distributor.setPhone(resultSet.getString("phone"));
+                    distributor.setAddress(resultSet.getString("address"));
+                    distributor.setCity(resultSet.getString("city"));
+                    distributor.setState(resultSet.getString("state"));
+                    distributor.setPinCode(resultSet.getString("pinCode"));
+                    distributor.setUserId(resultSet.getInt("userId"));
+                    distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
 
-                distributorList.add(distributor);
+                    distributorList.add(distributor);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -43,49 +45,49 @@ public class DistributorDAO {
 
     // ADD DISTRIBUTOR METHOD
     public void addDistributor(Distributor distributor) {
-        String query = "INSERT INTO distributor(distributorName, contactPerson, contactNumber, email, address, city, state, " +
-                "pincode, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO distributor(distributorName, contactPerson, email, phone, address, city, state, pinCode, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)
-        ) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, distributor.getDistributorName());
             statement.setString(2, distributor.getContactPerson());
-            statement.setString(3, distributor.getContactNumber());
-            statement.setString(4, distributor.getEmail());
+            statement.setString(3, distributor.getEmail());
+            statement.setString(4, distributor.getPhone());
             statement.setString(5, distributor.getAddress());
             statement.setString(6, distributor.getCity());
             statement.setString(7, distributor.getState());
-            statement.setString(8, distributor.getPincode());
-            statement.setTimestamp(9, distributor.getCreatedAt());
+            statement.setString(8, distributor.getPinCode());
+            statement.setInt(9, distributor.getUserId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // GET DISTRIBUTOR BY ID METHOD
-    public Distributor getDistributorById(int distributorId) {
+    // GET DISTRIBUTOR BY ID METHOD - WITH USER VERIFICATION
+    public Distributor getDistributorById(int distributorId, int userId) {
         Distributor distributor = null;
-        String query = "SELECT * FROM distributor WHERE distributorId = ?";
+        String query = "SELECT * FROM distributor WHERE distributorId = ? AND userId = ?";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setInt(1, distributorId);
+            statement.setInt(2, userId);
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
                 distributor = new Distributor();
                 distributor.setDistributorId(resultSet.getInt("distributorId"));
+                distributor.setUserId(resultSet.getInt("userId"));
                 distributor.setDistributorName(resultSet.getString("distributorName"));
-                distributor.setAddress(resultSet.getString("address"));
                 distributor.setContactPerson(resultSet.getString("contactPerson"));
-                distributor.setContactNumber(resultSet.getString("contactNumber"));
                 distributor.setEmail(resultSet.getString("email"));
+                distributor.setPhone(resultSet.getString("phone"));
+                distributor.setAddress(resultSet.getString("address"));
                 distributor.setCity(resultSet.getString("city"));
                 distributor.setState(resultSet.getString("state"));
-                distributor.setPincode(resultSet.getString("pincode"));
+                distributor.setPinCode(resultSet.getString("pinCode"));
                 distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
             }
             resultSet.close();
@@ -95,38 +97,37 @@ public class DistributorDAO {
         return distributor;
     }
 
-    // DELETE DISTRIBUTOR BY ID METHOD
-    public int deleteDistributor(int distributorId) {
-        String query = "DELETE FROM distributor WHERE distributorId = ?";
-        int result = 0;
+    // DELETE DISTRIBUTOR BY ID METHOD - WITH USER VERIFICATION
+    public void deleteDistributor(int distributorId, int userId) {
+        String query = "DELETE FROM distributor WHERE distributorId = ? AND userId = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setInt(1, distributorId);
-            result = statement.executeUpdate();
+            statement.setInt(2, userId);
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return result;
     }
 
-    // UPDATE DISTRIBUTOR METHOD
+    // UPDATE DISTRIBUTOR METHOD - WITH USER VERIFICATION
     public int updateDistributor(Distributor distributor) {
         int result = 0;
-        String query = "UPDATE distributor SET distributorName = ?, contactPerson = ?, contactNumber = ?, email = ?, " +
-                "address = ?, city = ?, state = ?, pincode = ? WHERE distributorId = ?";
+        String query = "UPDATE distributor SET distributorName = ?, contactPerson = ?, email = ?, phone = ?, address = ?, city = ?, state = ?, pinCode = ?, userId = ? WHERE distributorId = ? AND userId = ?";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)
-        ) {
+                PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, distributor.getDistributorName());
             statement.setString(2, distributor.getContactPerson());
-            statement.setString(3, distributor.getContactNumber());
-            statement.setString(4, distributor.getEmail());
+            statement.setString(3, distributor.getEmail());
+            statement.setString(4, distributor.getPhone());
             statement.setString(5, distributor.getAddress());
             statement.setString(6, distributor.getCity());
             statement.setString(7, distributor.getState());
-            statement.setString(8, distributor.getPincode());
-            statement.setInt(9, distributor.getDistributorId());
+            statement.setString(8, distributor.getPinCode());
+            statement.setInt(9, distributor.getUserId());
+            statement.setInt(10, distributor.getDistributorId());
+            statement.setInt(11, distributor.getUserId()); // Verify ownership
 
             result = statement.executeUpdate();
         } catch (SQLException e) {
@@ -136,14 +137,16 @@ public class DistributorDAO {
     }
 
     // COUNT DISTRIBUTOR METHOD
-    public int countDistributor() {
+    public int countDistributor(int userId) {
         int records = 0;
-        String query = "SELECT COUNT(distributorId) AS total FROM distributor";
+        String query = "SELECT COUNT(distributorId) AS total FROM distributor WHERE userId = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
-            if (resultSet.next()) {
-                records = resultSet.getInt("total");
+                PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    records = rs.getInt("total");
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -151,24 +154,30 @@ public class DistributorDAO {
         return records;
     }
 
-    public List<Distributor> getDistributorsPaginated(int offset, int noOfRecords) {
+    // PAGINATION METHOD
+    public List<Distributor> getDistributorsPaginated(int offset, int noOfRecords, int userId) {
         List<Distributor> distributorList = new ArrayList<>();
-        String query = "SELECT * FROM distributor LIMIT ? OFFSET ?";
+        String query = "SELECT * FROM distributor WHERE userId = ? LIMIT ? OFFSET ?";
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, noOfRecords);
-            statement.setInt(2, offset);
+                PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, userId);
+            statement.setInt(2, noOfRecords);
+            statement.setInt(3, offset);
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 Distributor distributor = new Distributor();
                 distributor.setDistributorId(resultSet.getInt("distributorId"));
+                distributor.setUserId(resultSet.getInt("userId"));
                 distributor.setDistributorName(resultSet.getString("distributorName"));
                 distributor.setContactPerson(resultSet.getString("contactPerson"));
-                distributor.setContactNumber(resultSet.getString("contactNumber"));
                 distributor.setEmail(resultSet.getString("email"));
+                distributor.setPhone(resultSet.getString("phone"));
                 distributor.setAddress(resultSet.getString("address"));
+                distributor.setCity(resultSet.getString("city"));
+                distributor.setState(resultSet.getString("state"));
+                distributor.setPinCode(resultSet.getString("pinCode"));
                 distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
                 distributorList.add(distributor);
             }

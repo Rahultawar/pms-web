@@ -1,41 +1,17 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-.idea/
-.smarttomcat/
-.target/
-
-### Mac OS ###
+# Project ignores
+/unrelevant
+/target/
+/bin/
+/node_modules/
+/.idea/
+/*.iml
+*.log
+*.class
 .DS_Store
+.env
+/*.swp
+/.smarttomcat/
+/.vscode/
+# XAMPP / Windows
+Thumbs.db
+desktop.ini

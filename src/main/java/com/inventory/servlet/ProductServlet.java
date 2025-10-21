@@ -20,7 +20,8 @@ public class ProductServlet extends HttpServlet {
     ProductDAO productDAO = new ProductDAO();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         Product product = new Product();
         String actionType = request.getParameter("actionType");
 
@@ -29,76 +30,52 @@ public class ProductServlet extends HttpServlet {
         }
 
         if (actionType.equalsIgnoreCase("add")) {
-
-            // Corrected parameter name
+            // ADD PRODUCT
             String productName = request.getParameter("txtProductName");
             String category = request.getParameter("selCategory");
             String manufacturer = request.getParameter("txtManufacturer");
             String batchNumber = request.getParameter("txtBatchNumber");
             String strength = request.getParameter("txtStrength");
-            String shelfLocation = request.getParameter("txtShelfLocation");
+            String location = request.getParameter("txtLocation");
             String distributorId = request.getParameter("txtDistributorId");
+            String userId = request.getParameter("txtUserId");
             String manufacturingDate = request.getParameter("manufacturingDate");
             String expiryDate = request.getParameter("expiryDate");
-            String quantityInStock = request.getParameter("txtQuantityInStock");
+            String quantity = request.getParameter("txtQuantity");
+            String subQuantity = request.getParameter("txtSubQuantity");
             String reorderLevel = request.getParameter("txtReorderLevel");
-            String purchasePrice = request.getParameter("txtPurchasePrice");
+            String purchasingPrice = request.getParameter("txtPurchasingPrice");
             String sellingPrice = request.getParameter("txtSellingPrice");
             String unit = request.getParameter("selUnit");
-            String stripType = request.getParameter("stripType");
-            String unitsPerStrip = request.getParameter("unitsPerStrip");
-            boolean isStrip = unit != null && unit.equalsIgnoreCase("strip");
-
-            if (!isStrip) {
-                stripType = null;
-                unitsPerStrip = null;
-            }
-
-            // Field validation
-            if (productName.isEmpty() || batchNumber.isEmpty() || strength.isEmpty() || manufacturingDate.isEmpty() || expiryDate.isEmpty() || purchasePrice.isEmpty() || sellingPrice.isEmpty() || unit.isEmpty() || quantityInStock.isEmpty()) {
-                RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
-                request.setAttribute("emptyField", "Required fields can't be empty.");
-                dispatcher.forward(request, response);
-                return;
-            }
-
-            if (isStrip) {
-                if (stripType == null || stripType.isEmpty() || unitsPerStrip == null || unitsPerStrip.isEmpty()) {
-                    RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
-                    request.setAttribute("emptyField", "Strip Type and Units per Strip are required when Unit is Strip.");
-                    dispatcher.forward(request, response);
-                    return;
-                }
-            }
 
             try {
-                // Setting data
                 product.setProductName(productName);
-                product.setCategory(category);
-                product.setManufacturer(manufacturer);
-                product.setBatchNumber(batchNumber);
-                product.setStrength(strength);
-                product.setShelfLocation(shelfLocation);
-                if (distributorId != null && !distributorId.isEmpty()) {
-                    product.setDistributorId(Integer.parseInt(distributorId));
-                } else {
-                    product.setDistributorId(0);
+                product.setDistributorId(Integer.parseInt(distributorId));
+                if (userId != null && !userId.isEmpty()) {
+                    product.setUserId(Integer.parseInt(userId));
+                }
+                product.setQuantity(Integer.parseInt(quantity));
+                if (subQuantity != null && !subQuantity.isEmpty()) {
+                    product.setSubQuantity(Integer.parseInt(subQuantity));
                 }
                 product.setUnit(unit);
+                product.setLocation(location);
+                product.setStrength(strength);
+                product.setCategory(category);
+                product.setManufacturer(manufacturer);
                 product.setManufacturingDate(Date.valueOf(manufacturingDate));
                 product.setExpiryDate(Date.valueOf(expiryDate));
-                product.setQuantityInStock(Integer.parseInt(quantityInStock));
-                product.setReorderLevel(reorderLevel != null && !reorderLevel.isEmpty() ? Integer.parseInt(reorderLevel) : 0);
-                product.setPurchasePrice(BigDecimalUtil.parseBigDecimal(purchasePrice));
+                product.setPurchasingPrice(BigDecimalUtil.parseBigDecimal(purchasingPrice));
+                product.setBatchNumber(batchNumber);
                 product.setSellingPrice(BigDecimalUtil.parseBigDecimal(sellingPrice));
-                product.setStripType(stripType != null && !stripType.isEmpty() ? stripType : null);
-                product.setUnitsPerStrip(unitsPerStrip != null && !unitsPerStrip.isEmpty() ? Integer.parseInt(unitsPerStrip) : 0);
+                product.setReorderLevel(Integer.parseInt(reorderLevel));
 
-                // Save product
+                // ADD PRODUCT METHOD FROM PRODUCT DAO
                 productDAO.addProduct(product);
 
-                // Redirect or forward after success
+                // REDIRECT AFTER SUCCESS
                 response.sendRedirect("ProductServlet?status=success");
+                return;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -107,77 +84,53 @@ public class ProductServlet extends HttpServlet {
                 dispatcher.forward(request, response);
             }
         } else {
+            // EDIT PRODUCT
             int prodId = Integer.parseInt(request.getParameter("productId"));
 
-            // Corrected parameter name
             String productName = request.getParameter("txtProductName");
             String category = request.getParameter("selCategory");
             String manufacturer = request.getParameter("txtManufacturer");
             String batchNumber = request.getParameter("txtBatchNumber");
             String strength = request.getParameter("txtStrength");
-            String shelfLocation = request.getParameter("txtShelfLocation");
+            String location = request.getParameter("txtLocation");
             String distributorId = request.getParameter("txtDistributorId");
+            String userId = request.getParameter("txtUserId");
             String manufacturingDate = request.getParameter("manufacturingDate");
             String expiryDate = request.getParameter("expiryDate");
-            String quantityInStock = request.getParameter("txtQuantityInStock");
+            String quantity = request.getParameter("txtQuantity");
+            String subQuantity = request.getParameter("txtSubQuantity");
             String reorderLevel = request.getParameter("txtReorderLevel");
-            String purchasePrice = request.getParameter("txtPurchasePrice");
+            String purchasingPrice = request.getParameter("txtPurchasingPrice");
             String sellingPrice = request.getParameter("txtSellingPrice");
             String unit = request.getParameter("selUnit");
-            String unitsPerStrip = request.getParameter("unitsPerStrip");
-            String stripType = request.getParameter("stripType");
-            boolean isStrip = unit != null && unit.equalsIgnoreCase("strip");
-
-            if (!isStrip) {
-                stripType = null;
-                unitsPerStrip = null;
-            }
-
-            // Field validation
-            if (productName.isEmpty() || batchNumber.isEmpty() || strength.isEmpty() || manufacturingDate.isEmpty() || expiryDate.isEmpty() || purchasePrice.isEmpty() || sellingPrice.isEmpty() || unit.isEmpty() || quantityInStock.isEmpty()) {
-                RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
-                request.setAttribute("emptyField", "Required fields can't be empty.");
-                dispatcher.forward(request, response);
-                return;
-            }
-
-            if (isStrip) {
-                if (stripType == null || stripType.isEmpty() || unitsPerStrip == null || unitsPerStrip.isEmpty()) {
-                    RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
-                    request.setAttribute("emptyField", "Strip Type and Units per Strip are required when Unit is Strip.");
-                    dispatcher.forward(request, response);
-                    return;
-                }
-            }
 
             try {
-                // Setting data
                 product.setProductId(prodId);
                 product.setProductName(productName);
-                product.setCategory(category);
-                product.setManufacturer(manufacturer);
-                product.setBatchNumber(batchNumber);
-                product.setStrength(strength);
-                product.setShelfLocation(shelfLocation);
-                if (distributorId != null && !distributorId.isEmpty()) {
-                    product.setDistributorId(Integer.parseInt(distributorId));
-                } else {
-                    product.setDistributorId(0);
+                product.setDistributorId(Integer.parseInt(distributorId));
+                if (userId != null && !userId.isEmpty()) {
+                    product.setUserId(Integer.parseInt(userId));
+                }
+                product.setQuantity(Integer.parseInt(quantity));
+                if (subQuantity != null && !subQuantity.isEmpty()) {
+                    product.setSubQuantity(Integer.parseInt(subQuantity));
                 }
                 product.setUnit(unit);
+                product.setLocation(location);
+                product.setStrength(strength);
+                product.setCategory(category);
+                product.setManufacturer(manufacturer);
                 product.setManufacturingDate(Date.valueOf(manufacturingDate));
                 product.setExpiryDate(Date.valueOf(expiryDate));
-                product.setQuantityInStock(Integer.parseInt(quantityInStock));
-                product.setReorderLevel(reorderLevel != null && !reorderLevel.isEmpty() ? Integer.parseInt(reorderLevel) : 0);
-                product.setPurchasePrice(BigDecimalUtil.parseBigDecimal(purchasePrice));
+                product.setPurchasingPrice(BigDecimalUtil.parseBigDecimal(purchasingPrice));
+                product.setBatchNumber(batchNumber);
                 product.setSellingPrice(BigDecimalUtil.parseBigDecimal(sellingPrice));
-                product.setUnitsPerStrip(unitsPerStrip != null && !unitsPerStrip.isEmpty() ? Integer.parseInt(unitsPerStrip) : 0);
-                product.setStripType(stripType != null && !stripType.isEmpty() ? stripType : null);
+                product.setReorderLevel(Integer.parseInt(reorderLevel));
 
-                // Save product
+                // UPDATE PRODUCT METHOD FROM PRODUCT DAO
                 productDAO.updateProduct(product);
 
-                // Redirect or forward after success
+                // REDIRECT AFTER SUCCESS
                 response.sendRedirect("ProductServlet?status=success");
 
             } catch (Exception e) {
@@ -190,24 +143,32 @@ public class ProductServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
         String idParam = request.getParameter("id");
         String deleteIdParam = request.getParameter("deleteId");
 
-        // If editing a product
+        // IF EDITING A PRODUCT
         if (idParam != null && !idParam.isEmpty()) {
             int prodId = Integer.parseInt(idParam);
-            Product product = productDAO.getProductById(prodId);
+            Product product = productDAO.getProductById(prodId, userId);
             request.setAttribute("productDetails", product);
         }
 
-        // If deleting a product
+        // IF DELETING A PRODUCT
         if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
             int deleteId = Integer.parseInt(deleteIdParam);
-            productDAO.deleteProduct(deleteId);
+            productDAO.deleteProduct(deleteId, userId);
         }
 
-        // Pagination logic
+        // PAGINATION LOGIC
         int page = 1;
         int recordsPerPage = 5;
         if (request.getParameter("page") != null) {
@@ -217,19 +178,17 @@ public class ProductServlet extends HttpServlet {
                 page = 1;
             }
         }
-
-        List<Product> productList = productDAO.getProductsPaginated((page - 1) * recordsPerPage, recordsPerPage);
-        int totalRecords = productDAO.countProduct();
+        List<Product> productList = productDAO.getProductsPaginated((page - 1) * recordsPerPage, recordsPerPage, userId);
+        int totalRecords = productDAO.countProduct(userId);
         int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
 
         request.setAttribute("productList", productList);
         request.setAttribute("noOfPages", totalPages);
         request.setAttribute("currentPage", page);
 
-    // Provide distributor list for product.jsp select dropdown
-    DistributorDAO distributorDAO = new DistributorDAO();
-    request.setAttribute("distributorList", distributorDAO.getAllDistributor());
-
+        // PROVIDE DISTRIBUTOR LIST FOR SELECT DROPDOWN
+        DistributorDAO distributorDAO = new DistributorDAO();
+        request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
         RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
         dispatcher.forward(request, response);
     }

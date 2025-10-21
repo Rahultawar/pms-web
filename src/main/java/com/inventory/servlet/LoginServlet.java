@@ -18,18 +18,20 @@ import java.sql.SQLException;
 import static com.inventory.utils.DBConnection.closeConnection;
 
 @WebServlet("/LoginServlet")
-
 public class LoginServlet extends HttpServlet {
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // GET USER RESPONSE
-        String username = request.getParameter("txtUsername");
-        String password = request.getParameter("txtPassword");
 
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
+
+        // GET USER RESPONSE
+        String username = request.getParameter("txtUsername");
+        String password = request.getParameter("txtPassword");
         RequestDispatcher dispatcher = request.getRequestDispatcher("index.jsp");
+
         if (username.isEmpty() || password.isEmpty()) {
             request.setAttribute("error-message", "Username or Password is incorrect");
             dispatcher.forward(request, response);
@@ -40,7 +42,7 @@ public class LoginServlet extends HttpServlet {
             try {
                 // GET CONNECTION
                 connection = DBConnection.getConnection();
-                String selectQuery = "SELECT * FROM userTable WHERE userName = ? AND password = ?";
+                String selectQuery = "SELECT * FROM user WHERE userName = ? AND password = ?";
                 statement = connection.prepareStatement(selectQuery);
                 statement.setString(1, username);
                 statement.setString(2, password);
@@ -50,6 +52,9 @@ public class LoginServlet extends HttpServlet {
                 if (resultSet.next()) {
                     HttpSession session = request.getSession();
                     session.setAttribute("username", username);
+                    session.setAttribute("userId", resultSet.getInt("userId"));
+                    session.setAttribute("medicalStoreName", resultSet.getString("medicalStoreName"));
+                    session.setAttribute("medicalStoreLogo", resultSet.getString("medicalStoreLogo"));
                     response.sendRedirect("DashboardServlet");
                 } else {
                     request.setAttribute("error-message", "Username or Password is incorrect");
@@ -61,6 +66,5 @@ public class LoginServlet extends HttpServlet {
                 closeConnection(connection);
             }
         }
-
     }
 }

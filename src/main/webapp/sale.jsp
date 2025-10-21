@@ -18,11 +18,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Sale</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style src="./assets/css/style.css"></style>
+    <c:url var="bootstrapCss" value="/assets/css/bootstrap.min.css"/>
+    <c:url var="fontAwesomeCss" value="/assets/css/fontawesome.min.css"/>
+    <c:url var="themeCss" value="/assets/css/theme.css"/>
+    <c:url var="bootstrapJs" value="/assets/js/bootstrap.bundle.min.js"/>
+    <link rel="stylesheet" href="${bootstrapCss}"/>
+    <link rel="stylesheet" href="${fontAwesomeCss}"/>
+    <link rel="stylesheet" href="${themeCss}"/>
     <c:url var="styleUrl" value="/assets/css/style.css"/>
     <link rel="stylesheet" href="${styleUrl}"/>
     <c:url var="enhancedStyleUrl" value="/assets/css/enhanced-ui.css"/>
@@ -73,7 +75,7 @@
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
             <img src="${iconUrl}" alt="Logo" width="40" height="40"
                  style="border-radius: 8px;">
-            <span class="fs-6 ms-2">Mahadev Medical Store</span>
+            <span class="fs-6 ms-2">${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}</span>
         </a>
     </b>
     <hr>
@@ -352,5 +354,5 @@
         });
     </script>
 </c:if>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${bootstrapJs}"></script>
 </html>

@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 @WebServlet("/DistributorServlet")
@@ -19,45 +17,50 @@ public class DistributorServlet extends HttpServlet {
     DistributorDAO distributorDAO = new DistributorDAO();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String actionType = request.getParameter("actionType");
-        Distributor distributor = new Distributor();
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
 
-        if ("add".equalsIgnoreCase(actionType)) {
+        Distributor distributor = new Distributor();
+        String actionType = request.getParameter("actionType");
+
+        if (actionType == null || actionType.isEmpty()) {
+            actionType = "add";
+        }
+
+        if (actionType.equalsIgnoreCase("add")) {
+            // ADDING FIELDS IN DISTRIBUTOR
             String distributorName = request.getParameter("txtDistributorName");
             String contactPerson = request.getParameter("txtContactPerson");
-            String contactNumber = request.getParameter("txtContactNumber");
+            String phone = request.getParameter("txtPhone");
             String email = request.getParameter("txtEmail");
             String address = request.getParameter("txtAddress");
             String city = request.getParameter("txtCity");
             String state = request.getParameter("txtState");
             String pinCode = request.getParameter("txtPinCode");
 
-            // Field validation
-            if (distributorName.isEmpty() || contactNumber.isEmpty() || address.isEmpty()) {
-                RequestDispatcher dispatcher = request.getRequestDispatcher("distributor.jsp");
-                request.setAttribute("emptyField", "Required fields can't be empty.");
-                dispatcher.forward(request, response);
-                return;
-            }
-
             try {
-                // Setting data
                 distributor.setDistributorName(distributorName);
-                distributor.setContactPerson(contactPerson != null && !contactPerson.isEmpty() ? contactPerson : null);
-                distributor.setContactNumber(contactNumber);
+                distributor.setContactPerson(contactPerson);
+                distributor.setPhone(phone);
+                distributor.setEmail(email);
                 distributor.setAddress(address);
-                distributor.setEmail(email != null && !email.isEmpty() ? email : null);
-                distributor.setCity(city != null && !city.isEmpty() ? city : null);
-                distributor.setState(state != null && !state.isEmpty() ? state : null);
-                distributor.setPincode(pinCode != null && !pinCode.isEmpty() ? pinCode : null);
-                distributor.setCreatedAt(new Timestamp(new Date().getTime()));
+                distributor.setCity(city);
+                distributor.setState(state);
+                distributor.setPinCode(pinCode);
+                distributor.setUserId(userId);
 
-                // Save distributor
+                // ADD DISTRIBUTOR METHOD FROM DISTRIBUTOR DAO
                 distributorDAO.addDistributor(distributor);
 
-                // Redirect or forward after success
+                // REDIRECT AFTER SUCCESS
                 response.sendRedirect("DistributorServlet?status=success");
+                return;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -66,42 +69,36 @@ public class DistributorServlet extends HttpServlet {
                 dispatcher.forward(request, response);
             }
         } else {
+            // EDIT DISTRIBUTOR
             int distributorId = Integer.parseInt(request.getParameter("distributorId"));
 
             String distributorName = request.getParameter("txtDistributorName");
             String contactPerson = request.getParameter("txtContactPerson");
-            String contactNumber = request.getParameter("txtContactNumber");
+            String phone = request.getParameter("txtPhone");
             String email = request.getParameter("txtEmail");
             String address = request.getParameter("txtAddress");
             String city = request.getParameter("txtCity");
             String state = request.getParameter("txtState");
             String pinCode = request.getParameter("txtPinCode");
 
-            // Field validation
-            if (distributorName.isEmpty() || contactNumber.isEmpty() || address.isEmpty()) {
-                RequestDispatcher dispatcher = request.getRequestDispatcher("distributor.jsp");
-                request.setAttribute("emptyField", "Required fields can't be empty.");
-                dispatcher.forward(request, response);
-                return;
-            }
-
             try {
-                // Setting data
                 distributor.setDistributorId(distributorId);
                 distributor.setDistributorName(distributorName);
-                distributor.setContactPerson(contactPerson != null && !contactPerson.isEmpty() ? contactPerson : null);
-                distributor.setContactNumber(contactNumber);
+                distributor.setContactPerson(contactPerson);
+                distributor.setPhone(phone);
+                distributor.setEmail(email);
                 distributor.setAddress(address);
-                distributor.setEmail(email != null && !email.isEmpty() ? email : null);
-                distributor.setCity(city != null && !city.isEmpty() ? city : null);
-                distributor.setState(state != null && !state.isEmpty() ? state : null);
-                distributor.setPincode(pinCode != null && !pinCode.isEmpty() ? pinCode : null);
+                distributor.setCity(city);
+                distributor.setState(state);
+                distributor.setPinCode(pinCode);
+                distributor.setUserId(userId);
 
-                // Save distributor
+                // UPDATE DISTRIBUTOR METHOD FROM DISTRIBUTOR DAO
                 distributorDAO.updateDistributor(distributor);
 
-                // Redirect or forward after success
+                // REDIRECT AFTER SUCCESS
                 response.sendRedirect("DistributorServlet?status=success");
+                return;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -113,24 +110,32 @@ public class DistributorServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
+
         String idParam = request.getParameter("editId");
         String deleteIdParam = request.getParameter("deleteId");
 
-        // If editing a product
+        // IF EDITING A DISTRIBUTOR
         if (idParam != null && !idParam.isEmpty()) {
             int distId = Integer.parseInt(idParam);
-            Distributor distributor = distributorDAO.getDistributorById(distId);
+            Distributor distributor = distributorDAO.getDistributorById(distId, userId);
             request.setAttribute("distributorDetails", distributor);
         }
 
-        // If deleting a product
+        // IF DELETING A DISTRIBUTOR
         if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
             int deleteId = Integer.parseInt(deleteIdParam);
-            distributorDAO.deleteDistributor(deleteId);
+            distributorDAO.deleteDistributor(deleteId, userId);
         }
 
-        //PAGINATION LOGIC
+        // PAGINATION LOGIC
         int recordsPerPage = 5;
         int page = 1;
         if (request.getParameter("page") != null) {
@@ -141,8 +146,9 @@ public class DistributorServlet extends HttpServlet {
             }
         }
 
-        List<Distributor> distributorList = distributorDAO.getDistributorsPaginated((page - 1) * recordsPerPage, recordsPerPage);
-        int totalRecords = distributorDAO.countDistributor();
+        List<Distributor> distributorList = distributorDAO.getDistributorsPaginated((page - 1) * recordsPerPage,
+                recordsPerPage, userId);
+        int totalRecords = distributorDAO.countDistributor(userId);
         int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
 
         request.setAttribute("distributorList", distributorList);

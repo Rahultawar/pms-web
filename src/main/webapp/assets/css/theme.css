@@ -1,0 +1,198 @@
+/* ========================================
+   GLOBAL THEME: PHARMACY MANAGEMENT SYSTEM
+   - Self-hosted Inter font family
+   - Shared color tokens and component primitives
+======================================== */
+
+@font-face {
+	font-family: "Inter";
+	src: url("../fonts/inter/Inter-Regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Inter";
+	src: url("../fonts/inter/Inter-Medium.woff2") format("woff2");
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Inter";
+	src: url("../fonts/inter/Inter-SemiBold.woff2") format("woff2");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Inter";
+	src: url("../fonts/inter/Inter-Bold.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--color-primary: #667eea;
+	--color-primary-dark: #764ba2;
+	--color-accent: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+	--color-surface: #ffffff;
+	--color-background: #f7fafc;
+	--color-text: #2d3748;
+	--color-muted: #718096;
+	--color-border: #e2e8f0;
+	--color-success: #38a169;
+	--color-danger: #e53e3e;
+
+	--radius-lg: 18px;
+	--radius-md: 12px;
+	--radius-sm: 8px;
+
+	--shadow-soft: 0 12px 40px rgba(102, 126, 234, 0.15);
+	--shadow-card: 0 18px 50px rgba(45, 55, 72, 0.15);
+	--shadow-focus: 0 0 0 4px rgba(102, 126, 234, 0.15);
+
+	--transition-fast: 0.2s ease;
+	--transition-base: 0.3s ease;
+
+	--font-family-base: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	font-family: var(--font-family-base);
+	font-size: 16px;
+	line-height: 1.6;
+	background-color: var(--color-background);
+	color: var(--color-text);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+a {
+	color: var(--color-primary);
+	transition: color var(--transition-fast);
+}
+
+a:hover,
+a:focus {
+	color: var(--color-primary-dark);
+}
+
+button,
+.btn {
+	font-family: var(--font-family-base);
+	font-weight: 600;
+	border-radius: var(--radius-sm);
+	transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.btn-primary,
+button[type="submit"] {
+	background: var(--color-accent);
+	border: none;
+	color: #ffffff;
+	box-shadow: var(--shadow-soft);
+}
+
+input,
+select,
+textarea {
+	font-family: var(--font-family-base);
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-border);
+	background-color: #ffffff;
+	transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	border-color: var(--color-primary);
+	outline: none;
+	box-shadow: var(--shadow-focus);
+}
+
+.card,
+.panel {
+	background-color: var(--color-surface);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-card);
+	border: none;
+}
+
+.badge-primary,
+.status-pill {
+	background: var(--color-accent);
+	color: #ffffff;
+}
+
+.text-muted {
+	color: var(--color-muted) !important;
+}
+
+.alert-danger,
+.error-message {
+	background-color: rgba(229, 62, 62, 0.1);
+	border-left: 4px solid var(--color-danger);
+	color: var(--color-danger);
+}
+
+/* Utility classes */
+.bg-accent {
+	background: var(--color-accent);
+	color: #ffffff;
+}
+
+.shadow-soft {
+	box-shadow: var(--shadow-soft);
+}
+
+.rounded-md {
+	border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+	border-radius: var(--radius-lg);
+}
+
+.text-gradient {
+	background: var(--color-accent);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	color: transparent;
+}
+
+/* Layout helpers */
+.page-wrapper {
+	min-height: 100vh;
+	background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
+	padding: 2rem 1.5rem;
+}
+
+.glass-panel {
+	background: rgba(255, 255, 255, 0.75);
+	backdrop-filter: blur(18px);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-card);
+	border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+	body {
+		font-size: 15px;
+	}
+
+	.page-wrapper {
+		padding: 1.5rem 1rem;
+	}
+}
