@@ -1,0 +1,208 @@
+* {
+    transition: all 0.3s ease-in-out;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f8f4;
+    color: #333;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-in forwards;
+}
+
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+#productForm {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: #333;
+    display: none;
+}
+
+#noProductAvailable {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: #333;
+}
+
+#distributorForm {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+    background: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: #333;
+    display: none;
+}
+
+#noDistributorAvailable {
+    max-width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+    background: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: #333;
+}
+
+#sidebar {
+    height: 100vh;
+    width: 280px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #e9f5e9;
+    padding-top: 30px;
+    border-right: 1px solid #d4e7d4;
+    transition: all 0.3s;
+}
+
+#sidebar .nav-link {
+    color: black;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+#sidebar .nav-link:hover {
+    background-color: black;
+    transform: translateX(5px);
+    color: black;
+}
+
+#sidebar .nav-link.active {
+    background-color: black;
+    color: white;
+}
+
+#sidebar .nav-link i {
+    margin-right: 10px;
+    transition: transform 0.3s;
+}
+
+#sidebar .nav-link:hover i {
+    transform: scale(1.2);
+}
+
+
+.navbar .nav-item .nav-link {
+    color: black;
+    position: relative;
+}
+
+.navbar .nav-item .nav-link::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background: black;
+    transition: width 0.3s;
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+}
+
+.navbar .nav-item .nav-link:hover::after {
+    width: 100%;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f5f0;
+    transform: translateX(5px);
+}
+
+#content-wrapper {
+    margin-left: 280px;
+    padding: 10px;
+    transition: margin-left 0.3s;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+        position: relative;
+    }
+
+    #content-wrapper {
+        margin-left: 0;
+    }
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #2e4a37;
+    font-weight: 600;
+}
+
+p {
+    color: #555;
+}
+
+/* Button styling and hover effect */
+button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    background-color: #43a047;
+    transform: scale(1.05);
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
