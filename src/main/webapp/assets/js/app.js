@@ -86,10 +86,16 @@
 
     function showForm(mode) {
         var page = document.body.dataset.page || '';
-
-        // Hide header for all form modes
+        
+        // Hide sidebar and header for all form modes
+        var sidebar = document.getElementById('sidebar');
         var header = document.querySelector('.app-header');
+        if (sidebar) sidebar.style.display = 'none';
         if (header) header.style.display = 'none';
+        
+        // Adjust content wrapper margin
+        var contentWrapper = document.getElementById('content-wrapper');
+        if (contentWrapper) contentWrapper.style.marginLeft = '0';
         
         if (page === 'sale') {
             var saleForm = document.getElementById('saleForm');
