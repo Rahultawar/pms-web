@@ -122,6 +122,7 @@ body {
     margin-left: var(--sidebar-width);
     padding: 24px;
     width: 100%;
+    position: relative;
 }
 
 .card {
@@ -310,8 +311,9 @@ button:active::after,
     padding: 1.5rem;
     max-height: none;
     overflow-y: visible;
+    position: relative;
+    z-index: 10;
 }
-
 .form-card .form-floating {
     margin-bottom: 0.875rem;
 }
