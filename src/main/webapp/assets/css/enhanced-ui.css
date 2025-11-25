@@ -1,7 +1,3 @@
-.form-view #sidebar {
-    display: none !important;
-}
-
 /* ========================================
    MODERN STAT CARDS STYLING
    ======================================== */
@@ -454,7 +450,7 @@
     #content-wrapper {
         margin-left: 0 !important;
         width: 100%;
-        padding: 25px 16px 24px 16px;
+        padding: 88px 16px 24px 16px;
     }
 
     .app-header {
