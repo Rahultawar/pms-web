@@ -42,8 +42,10 @@
     <c:url var="profilePicUrl" value="/assets/images/ProfilePic.jpg"/>
     <c:url var="logoutUrl" value="/LogoutServlet"/>
 </head>
+<!-- Product Management Page Body -->
 <body data-page="product">
 
+<!-- Main Application Container -->
 <div class="app-shell">
 <!-- SIDEBAR -->
 <aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
@@ -180,10 +182,19 @@
                 </c:otherwise>
             </c:choose>
 
-            <!-- PRODUCT FORM -->
+            <!-- Product Add/Edit Form - Hidden by default, shown by JavaScript -->
             <div id="productForm" class="card form-card">
                 <h5 class="card-title mb-3" id="formTitle">Add New Product</h5>
                 <form action="ProductServlet" method="post">
+                    <!-- Hidden fields for product ID and action type -->
+                    <input type="hidden" id="productId" name="productId"
+                           value="${requestScope.productDetails.productId}">
+                    <input type="hidden" name="actionType"
+                           value="${requestScope.productDetails != null ? 'update' : 'add'}">
+                    <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
+
+                    <!-- Form fields organized in two columns for better layout -->
+                    <div class="row">
                     <input type="hidden" id="productId" name="productId"
                            value="${requestScope.productDetails.productId}">
                     <input type="hidden" name="actionType"
