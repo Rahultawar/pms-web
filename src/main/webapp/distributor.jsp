@@ -44,30 +44,7 @@
 
             </head>
 
-            <body data-page="distributor">
-
-                <!-- HEADER -->
-                <header class="app-header">
-                    <div class="container-fluid">
-                        <div class="header-inner">
-                            <div class="header-actions ms-auto">
-                                <div class="dropdown">
-                                    <a href="#" class="d-block text-decoration-none dropdown-toggle"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                        <img src="${profilePicUrl}" alt="Profile" width="36" height="36"
-                                            class="rounded-circle shadow-sm">
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end text-small">
-                                        <li><a class="dropdown-item" href="#">Profile</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="${logoutUrl}">Log out</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-                <!-- /HEADER -->
+<body data-page="distributor">
 
                 <div class="app-shell">
                 <!-- SIDEBAR -->
@@ -98,6 +75,16 @@
                         <li>
                             <a href="SaleServlet" class="nav-link">
                                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-user me-2"></i> Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a href="${logoutUrl}" class="nav-link">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
                             </a>
                         </li>
                     </ul>

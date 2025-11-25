@@ -37,37 +37,6 @@
 </head>
 <body data-page="sale">
 
-<!-- HEADER -->
-<header class="p-2 mb-3">
-    <div class="container">
-        <div class="row justify-content-end align-items-center">
-            <div class="col-md-5">
-                <form class="d-flex mb-0">
-                    <input type="search" class="form-control w-75" id="searchBox" placeholder="Search..."
-                           aria-label="Search">
-                </form>
-            </div>
-            <div class="col-md-5">
-                <div class="dropdown d-flex justify-content-end">
-                    <a href="#" class="d-block text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                        <img src="${profilePicUrl}" alt="Profile" width="32" height="32" class="rounded-circle">
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end text-small">
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="${logoutUrl}">Log out</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
-<!-- /HEADER -->
-
-
 <!-- SIDEBAR -->
 <div id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
     <b>
@@ -91,12 +60,22 @@
         </li>
         <li>
             <a href="DistributorServlet" class="nav-link">
-                <i class="fas fa-file-invoice-dollar me-2"></i> Distributor
+                <i class="fas fa-truck me-2"></i> Distributor
             </a>
         </li>
         <li>
             <a href="SaleServlet" class="nav-link active" aria-current="page">
-                <i class="fas fa-truck me-2"></i>Sales
+                <i class="fas fa-file-invoice-dollar me-2"></i> Sales
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link">
+                <i class="fas fa-user me-2"></i> Profile
+            </a>
+        </li>
+        <li>
+            <a href="${logoutUrl}" class="nav-link">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
             </a>
         </li>
     </ul>
