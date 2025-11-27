@@ -74,9 +74,14 @@
                 <i class="fas fa-truck me-2"></i> Distributor
             </a>
         </li>
-                        <li>
-                            <a href="SaleServlet" class="nav-link">
+        <li>
+            <a href="SaleServlet" class="nav-link">
                                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
+                            </a>
+                        </li>
+                        <li>
+                            <a href="ImportExportServlet" class="nav-link">
+                                <i class="fas fa-file-csv me-2"></i> Import/Export
                             </a>
                         </li>
                         <li>
