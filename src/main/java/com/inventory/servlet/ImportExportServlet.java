@@ -1,5 +1,5 @@
-package com.inventory.servlet;
 
+package com.inventory.servlet;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.ProductDAO;
 import com.inventory.models.Distributor;
@@ -95,7 +95,19 @@ public class ImportExportServlet extends HttpServlet {
                         result = "Invalid import type.";
                     }
 
-                    if (result.contains("Success")) {
+                    // Check if there were any successful imports
+                    int successCount = 0;
+                    if ("products".equals(importType) || "distributors".equals(importType)) {
+                        // Extract success count from result message
+                        try {
+                            String countStr = result.split(" ")[0];
+                            successCount = Integer.parseInt(countStr);
+                        } catch (Exception e) {
+                            successCount = 0;
+                        }
+                    }
+
+                    if (successCount > 0) {
                         request.setAttribute("successMessage", result);
                     } else {
                         request.setAttribute("errorMessage", result);
@@ -214,9 +226,7 @@ public class ImportExportServlet extends HttpServlet {
                     successCount++;
 
                 } catch (Exception e) {
-                    String msg = e.getMessage();
-                    if (msg == null) msg = e.toString();
-                    errors.add("Error in row '" + line + "': " + msg);
+                    errors.add(generateUserFriendlyMessage(e, line, "product"));
                 }
             }
         }
@@ -266,9 +276,7 @@ public class ImportExportServlet extends HttpServlet {
                     successCount++;
 
                 } catch (Exception e) {
-                    String msg = e.getMessage();
-                    if (msg == null) msg = e.toString();
-                    errors.add("Error in row '" + line + "': " + msg);
+                    errors.add(generateUserFriendlyMessage(e, line, "distributor"));
                 }
             }
         }
@@ -331,5 +339,62 @@ public class ImportExportServlet extends HttpServlet {
         }
 
         throw new IllegalArgumentException("Invalid date format: " + dateStr + ". Supported formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, MM-DD-YYYY, etc.");
+    }
+
+    private String generateUserFriendlyMessage(Exception e, String line, String type) {
+        String message = e.getMessage();
+        if (message == null) {
+            message = e.toString();
+        }
+
+        // Handle specific exception types
+        if (message.contains("Duplicate entry") && message.contains("for key")) {
+            // Extract the field and value that caused the duplicate
+            try {
+                // Message format: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry 'Gamma Enterprise' for key 'ux_distributor_name'
+                int startQuote = message.indexOf("'") + 1;
+                int endQuote = message.indexOf("'", startQuote);
+                String duplicateValue = message.substring(startQuote, endQuote);
+
+                int keyStart = message.indexOf("for key '") + 9;
+                int keyEnd = message.indexOf("'", keyStart);
+                String keyName = message.substring(keyStart, keyEnd);
+
+                // Map key names to readable field names
+                String fieldName = "unknown field";
+                if (keyName.contains("name")) {
+                    if (type.equals("distributor")) {
+                        fieldName = "distributor name";
+                    } else {
+                        fieldName = "product name";
+                    }
+                } else if (keyName.contains("batch")) {
+                    fieldName = "batch number";
+                } else if (keyName.contains("email")) {
+                    fieldName = "email";
+                } else if (keyName.contains("phone")) {
+                    fieldName = "phone";
+                }
+
+                return "Duplicate " + fieldName + " '" + duplicateValue + "' already exists for this " + type;
+            } catch (Exception ex) {
+                return "Duplicate data found in row: " + line + ". Please check for existing records.";
+            }
+        } else if (message.contains("Invalid date")) {
+            return "Invalid date format in row: " + line + ". Please use formats like YYYY-MM-DD.";
+        } else if (message.contains("NumberFormatException") || message.contains("cannot be converted")) {
+            return "Invalid number format in row: " + line + ". Please check numeric fields (quantity, prices, etc.).";
+        } else if (message.contains("NullPointerException") || message.contains("null")) {
+            return "Missing required data in row: " + line + ". All required fields must be filled.";
+        } else if (message.contains("SQLIntegrityConstraintViolationException") || message.contains("constraint")) {
+            return "Data constraint violation in row: " + line + ". Please check that all required fields are correct.";
+        } else if (e instanceof NumberFormatException) {
+            return "Invalid number format in row: " + line;
+        } else if (e instanceof IllegalArgumentException) {
+            return "Invalid data in row: " + line + " - " + message;
+        } else {
+            // Generic fallback
+            return "Error processing row '" + line + "': " + message;
+        }
     }
 }
