@@ -65,7 +65,7 @@
                     </ol>
                 </nav>
             </div>
-            <div class="col-md-3 col-12 mb-2 mb-md-0">
+            <div class="col-md-3 col-12 mb-2 mb-md-0" id="searchContainer">
                 <div class="input-group">
                     <input type="search" class="form-control" id="searchBox" placeholder="Search products...">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -504,6 +504,53 @@
         });
     </script>
 </c:if>
+
+<!-- Script to hide search when form is shown -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to toggle search container visibility
+    function toggleSearchVisibility() {
+        var searchContainer = document.getElementById('searchContainer');
+        var productForm = document.getElementById('productForm');
+        var productDetail = document.getElementById('productDetail');
+
+        if (searchContainer) {
+            // Hide search when form or detail view is shown
+            var shouldHide = (productForm && productForm.style.display === 'block') ||
+                            (productDetail && productDetail.style.display === 'block');
+
+            searchContainer.style.display = shouldHide ? 'none' : 'block';
+        }
+    }
+
+    // Initial toggle
+    toggleSearchVisibility();
+
+    // Override PMS.showForm to also toggle search visibility
+    var originalShowForm = window.PMS && window.PMS.showForm;
+    if (originalShowForm) {
+        window.PMS.showForm = function(mode) {
+            originalShowForm.call(window.PMS, mode);
+            setTimeout(toggleSearchVisibility, 50); // Small delay to ensure DOM is updated
+        };
+    }
+
+    // Watch for any display changes on form/detail elements (in case they change via other methods)
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                toggleSearchVisibility();
+            }
+        });
+    });
+
+    var productForm = document.getElementById('productForm');
+    var productDetail = document.getElementById('productDetail');
+
+    if (productForm) observer.observe(productForm, { attributes: true });
+    if (productDetail) observer.observe(productDetail, { attributes: true });
+});
+</script>
 
 <script src="${bootstrapJs}"></script>
 
