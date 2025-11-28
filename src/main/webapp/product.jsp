@@ -161,7 +161,7 @@
             <!-- Product Add/Edit Form - Hidden by default, shown by JavaScript -->
             <div id="productForm" class="card form-card">
                 <h5 class="card-title mb-3" id="formTitle">Add New Product</h5>
-                <form action="ProductServlet" method="post">
+                <form action="ProductServlet" method="post" onsubmit="return validateProductForm()">
                     <!-- Hidden fields for product ID and action type -->
                     <input type="hidden" id="productId" name="productId"
                            value="${requestScope.productDetails.productId}">
@@ -176,13 +176,13 @@
                         <div class="col-md-6">
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="productName" name="txtProductName"
-                                       placeholder="Product Name"
+                                       placeholder="Product Name" maxlength="100"
                                        value="${requestScope.productDetails.productName}" required>
                                 <label for="productName">Product Name</label>
                             </div>
 
                             <div class="form-floating mb-3">
-                                <select class="form-control" id="category" name="selCategory">
+                                <select class="form-control" id="category" name="selCategory" required>
                                     <option value="" disabled>Select Category</option>
                                     <option value="Analgesic"
                                             <c:if test="${p != null and p.category == 'Analgesic'}">selected</c:if>>
@@ -293,29 +293,29 @@
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="manufacturer" name="txtManufacturer"
-                                       placeholder="Manufacturer"
+                                       placeholder="Manufacturer" maxlength="50"
                                        value="${requestScope.productDetails.manufacturer}" required>
                                 <label for="manufacturer">Manufacturer</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="batchNumber" name="txtBatchNumber"
-                                       placeholder="Batch Number"
+                                       placeholder="Batch Number" minlength="7" maxlength="30"
                                        value="${requestScope.productDetails.batchNumber}" required>
                                 <label for="batchNumber">Batch Number</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="strength" name="txtStrength"
-                                       placeholder="Strength"
+                                       placeholder="Strength" maxlength="25"
                                        value="${requestScope.productDetails.strength}" required>
                                 <label for="strength">Strength</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="location" name="txtLocation"
-                                       placeholder="Location"
-                                       value="${requestScope.productDetails.location}">
+                                       placeholder="Location" maxlength="50"
+                                       value="${requestScope.productDetails.location}" required>
                                 <label for="location">Location</label>
                             </div>
 
@@ -336,7 +336,7 @@
                                 <input type="number" class="form-control" min="0" id="subQuantity"
                                        name="txtSubQuantity" placeholder="Sub Quantity (Units in Strip)"
                                        value="${requestScope.productDetails.subQuantity > 0 ? requestScope.productDetails.subQuantity : ''}"
-                                       data-strip-required="false" disabled>
+                                       data-strip-required="false" required disabled>
                                 <label for="subQuantity">Sub Quantity (Units in Strip)</label>
                             </div>
                         </div>
@@ -609,6 +609,88 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script src="${bootstrapJs}"></script>
 
+<script>
+function validateProductForm() {
+  let errors = [];
+
+  // ProductName: alphanumeric, max 100
+  let productName = document.getElementById('productName').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,100}$/.test(productName)) {
+    errors.push('Product Name must be alphanumeric (letters, numbers, spaces) and up to 100 characters.');
+  }
+
+  // Quantity: number
+  let quantity = parseFloat(document.getElementById('quantity').value);
+  if (!quantity || quantity <= 0 || !Number.isInteger(quantity)) {
+    errors.push('Quantity must be a positive integer.');
+  }
+
+  // SubQuantity: number if not disabled
+  let subQuantityEl = document.getElementById('subQuantity');
+  if (!subQuantityEl.disabled) {
+    let subQuantity = parseFloat(subQuantityEl.value);
+    if (!subQuantity || subQuantity <= 0 || !Number.isInteger(subQuantity)) {
+      errors.push('Sub Quantity must be a positive integer.');
+    }
+  }
+
+  // Unit: alphabets, 50
+  let unit = document.getElementById('unit').value;
+  if (!/^[a-zA-Z]{1,50}$/.test(unit)) {
+    errors.push('Unit must be alphabets and up to 50 characters.');
+  }
+
+  // Location: alphanumeric, 50
+  let location = document.getElementById('location').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,50}$/.test(location)) {
+    errors.push('Location must be alphanumeric (letters, numbers, spaces) and up to 50 characters.');
+  }
+
+  // Strength: alphanumeric, 25
+  let strength = document.getElementById('strength').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,25}$/.test(strength)) {
+    errors.push('Strength must be alphanumeric (letters, numbers, spaces) and up to 25 characters.');
+  }
+
+  // Manufacturer: alphanumeric, 50
+  let manufacturer = document.getElementById('manufacturer').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,50}$/.test(manufacturer)) {
+    errors.push('Manufacturer must be alphanumeric (letters, numbers, spaces) and up to 50 characters.');
+  }
+
+  // BatchNumber: alphanumeric, 7-30
+  let batchNumber = document.getElementById('batchNumber').value.trim();
+  if (!/^[a-zA-Z0-9]{7,30}$/.test(batchNumber)) {
+    errors.push('Batch Number must be alphanumeric (letters, numbers) between 7-30 characters.');
+  }
+
+  // ReorderLevel: number
+  let reorderLevel = parseFloat(document.getElementById('reorderLevel').value);
+  if (!reorderLevel || reorderLevel < 0 || !Number.isInteger(reorderLevel)) {
+    errors.push('Reorder Level must be a non-negative integer.');
+  }
+
+  // ManufacturingDate not after ExpiryDate
+  let mfd = new Date(document.getElementById('manufacturingDate').value);
+  let exp = new Date(document.getElementById('expiryDate').value);
+  if (mfd >= exp) {
+    errors.push('Manufacturing Date must be before Expiry Date.');
+  }
+
+  // PurchasingPrice < SellingPrice
+  let pur = parseFloat(document.getElementById('purchasingPrice').value);
+  let sell = parseFloat(document.getElementById('sellingPrice').value);
+  if (pur >= sell) {
+    errors.push('Purchasing Price must be less than Selling Price.');
+  }
+
+  if (errors.length > 0) {
+    alert(errors.join('\n'));
+    return false;
+  }
+  return true;
+}
+</script>
 
 </body>
 </html>
