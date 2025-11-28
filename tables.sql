@@ -36,6 +36,23 @@ CREATE TABLE product (
   CONSTRAINT `fk_product_user` FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `customer` (
+  `customerId` INT NOT NULL AUTO_INCREMENT,
+  `customerName` VARCHAR(255) NOT NULL,
+  `contactNumber` VARCHAR(20) NOT NULL,
+  `userId` INT NOT NULL,
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`customerId`),
+  KEY `idx_customer_user` (`userId`),
+  CONSTRAINT fk_customer_user
+  FOREIGN KEY (userId) REFERENCES user(userId)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- If customer table already exists, run this to add createdAt column:
+-- ALTER TABLE customer ADD COLUMN createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
 CREATE TABLE `distributor` (
   `distributorId` INT NOT NULL AUTO_INCREMENT,
   `distributorName` VARCHAR(255) NOT NULL,
@@ -50,8 +67,8 @@ CREATE TABLE `distributor` (
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`distributorId`),
   UNIQUE KEY `ux_distributor_name` (`distributorName`),
-  CONSTRAINT fk_distributor_user 
-  FOREIGN KEY (userId) REFERENCES user(userId) 
-  ON DELETE CASCADE 
+  CONSTRAINT fk_distributor_user
+  FOREIGN KEY (userId) REFERENCES user(userId)
+  ON DELETE CASCADE
   ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
