@@ -61,7 +61,8 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0" id="breadcrumbItem">
                         <li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Product</li>
+                        <li class="breadcrumb-item" id="productBreadcrumbLink"><a href="ProductServlet">Product</a></li>
+                        <li class="breadcrumb-item active" id="currentPageBreadcrumb" aria-current="page">Product</li>
                     </ol>
                 </nav>
             </div>
@@ -505,50 +506,104 @@
     </script>
 </c:if>
 
-<!-- Script to hide search when form is shown -->
+<!-- Script to handle UI state changes (search visibility and breadcrumbs) -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to toggle search container visibility
-    function toggleSearchVisibility() {
+    // Function to update UI state based on current view
+    function updateUIState() {
         var searchContainer = document.getElementById('searchContainer');
         var productForm = document.getElementById('productForm');
         var productDetail = document.getElementById('productDetail');
+        var productTable = document.getElementById('productTable');
+        var noProductAvailable = document.getElementById('noProductAvailable');
 
-        if (searchContainer) {
+        var productBreadcrumbLink = document.getElementById('productBreadcrumbLink');
+        var currentPageBreadcrumb = document.getElementById('currentPageBreadcrumb');
+
+        if (searchContainer && productBreadcrumbLink && currentPageBreadcrumb) {
             // Hide search when form or detail view is shown
             var shouldHide = (productForm && productForm.style.display === 'block') ||
                             (productDetail && productDetail.style.display === 'block');
 
             searchContainer.style.display = shouldHide ? 'none' : 'block';
+
+            // Clear breadcrumb classes first
+            currentPageBreadcrumb.innerHTML = '';
+
+            // Remove any dynamically added breadcrumbs (clean up)
+            var breadcrumbList = document.querySelectorAll('.breadcrumb-item');
+            breadcrumbList.forEach(function(item) {
+                if (item !== productBreadcrumbLink.parentElement.children[0] &&
+                    item !== productBreadcrumbLink &&
+                    item !== currentPageBreadcrumb) {
+                    item.remove();
+                }
+            });
+
+            // Update breadcrumbs based on current state
+            if (productDetail && productDetail.style.display === 'block') {
+                // View Product mode
+                productBreadcrumbLink.style.display = 'inline';
+                productBreadcrumbLink.classList.remove('active');
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = 'View Product';
+                console.log('Breadcrumb set to: Home > Product > View Product');
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else if (productForm && productForm.style.display === 'block') {
+                // Add/Edit mode
+                var productIdElement = document.getElementById('productId');
+                var isEdit = productIdElement && productIdElement.value && productIdElement.value.trim() !== '';
+                var newText = isEdit ? 'Edit Product' : 'Add Product';
+                productBreadcrumbLink.style.display = 'inline';
+                productBreadcrumbLink.classList.remove('active');
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = newText;
+                console.log('Breadcrumb set to: Home > Product > ' + newText);
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else if ((productTable && productTable.style.display !== 'none') ||
+                      (noProductAvailable && noProductAvailable.style.display !== 'none')) {
+                // List view mode
+                productBreadcrumbLink.style.display = 'none';
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = 'Product';
+                console.log('Breadcrumb set to: Home > Product');
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else {
+                console.log('Breadcrumb: Unknown state - no matching condition');
+            }
         }
     }
 
-    // Initial toggle
-    toggleSearchVisibility();
+    // Initial state update
+    updateUIState();
 
-    // Override PMS.showForm to also toggle search visibility
+    // Override PMS.showForm to also update UI state
     var originalShowForm = window.PMS && window.PMS.showForm;
     if (originalShowForm) {
         window.PMS.showForm = function(mode) {
             originalShowForm.call(window.PMS, mode);
-            setTimeout(toggleSearchVisibility, 50); // Small delay to ensure DOM is updated
+            setTimeout(updateUIState, 50); // Small delay to ensure DOM is updated
         };
     }
 
-    // Watch for any display changes on form/detail elements (in case they change via other methods)
+    // Watch for any display changes on form/detail elements
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                toggleSearchVisibility();
+                updateUIState();
             }
         });
     });
 
     var productForm = document.getElementById('productForm');
     var productDetail = document.getElementById('productDetail');
+    var productTable = document.getElementById('productTable');
+    var noProductAvailable = document.getElementById('noProductAvailable');
 
     if (productForm) observer.observe(productForm, { attributes: true });
     if (productDetail) observer.observe(productDetail, { attributes: true });
+    if (productTable) observer.observe(productTable, { attributes: true });
+    if (noProductAvailable) observer.observe(noProductAvailable, { attributes: true });
 });
 </script>
 
