@@ -79,7 +79,12 @@ public class ProductServlet extends HttpServlet {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute("errorMessage", "Something went wrong: " + e.getMessage());
+                String errorMessage = getCustomErrorMessage(e);
+                request.setAttribute("errorMessage", errorMessage);
+                request.setAttribute("productDetails", product); // Keep form data for adding
+                request.setAttribute("actionTypeValue", "add");
+                // Load required attributes for JSP
+                loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
                 dispatcher.forward(request, response);
             }
@@ -135,7 +140,11 @@ public class ProductServlet extends HttpServlet {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute("errorMessage", "Something went wrong: " + e.getMessage());
+                String errorMessage = getCustomErrorMessage(e);
+                request.setAttribute("errorMessage", errorMessage);
+                request.setAttribute("productDetails", product); // Keep form data for editing
+                // Load required attributes for JSP
+                loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
                 dispatcher.forward(request, response);
             }
@@ -154,12 +163,21 @@ public class ProductServlet extends HttpServlet {
 
         String idParam = request.getParameter("id");
         String deleteIdParam = request.getParameter("deleteId");
+        String viewIdParam = request.getParameter("viewId");
 
         // IF EDITING A PRODUCT
         if (idParam != null && !idParam.isEmpty()) {
             int prodId = Integer.parseInt(idParam);
             Product product = productDAO.getProductById(prodId, userId);
             request.setAttribute("productDetails", product);
+        }
+
+        // IF VIEWING PRODUCT DETAILS
+        if (viewIdParam != null && !viewIdParam.isEmpty()) {
+            int prodId = Integer.parseInt(viewIdParam);
+            Product product = productDAO.getProductById(prodId, userId);
+            request.setAttribute("productDetails", product);
+            request.setAttribute("actionTypeValue", "view");
         }
 
         // IF DELETING A PRODUCT
@@ -191,5 +209,61 @@ public class ProductServlet extends HttpServlet {
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
         RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
         dispatcher.forward(request, response);
+    }
+
+    private void loadAttributesForJSP(HttpServletRequest request, String pageParam, String deleteIdParam) {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) return; // Though we already check in doGet
+
+        // PAGINATION LOGIC - Default to page 1 if not provided
+        int page = 1;
+        int recordsPerPage = 5;
+        if (pageParam != null) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        List<Product> productList = productDAO.getProductsPaginated((page - 1) * recordsPerPage, recordsPerPage, userId);
+        int totalRecords = productDAO.countProduct(userId);
+        int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
+
+        // Delete if requested
+        if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
+            try {
+                int deleteId = Integer.parseInt(deleteIdParam);
+                productDAO.deleteProduct(deleteId, userId);
+            } catch (NumberFormatException e) {
+                // Ignore invalid deleteId
+            }
+        }
+
+        request.setAttribute("productList", productList);
+        request.setAttribute("noOfPages", totalPages);
+        request.setAttribute("currentPage", page);
+
+        // PROVIDE DISTRIBUTOR LIST FOR SELECT DROPDOWN
+        DistributorDAO distributorDAO = new DistributorDAO();
+        request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
+    }
+
+    private String getCustomErrorMessage(Exception e) {
+        String message = e.getMessage();
+        if (message == null) message = "";
+        message = message.toLowerCase();
+
+        if (message.contains("duplicate entry") && message.contains("ux_batch_number")) {
+            return "Batch number already exists. Please use a unique batch number.";
+        } else if (message.contains("foreign key constraint") || message.contains("cannot add or update")) {
+            return "Invalid distributor selected. Please select a valid distributor from the list.";
+        } else if (message.contains("invalid date")) {
+            return "Invalid date format. Please use YYYY-MM-DD format (e.g., 2025-12-31).";
+        } else if (message.contains("invalid decimal") || message.contains("for input string")) {
+            return "Invalid number format. Please enter valid numbers for quantity, prices, and reorder level.";
+        } else {
+            return "Failed to save product. Please check your data and try again.";
+        }
     }
 }

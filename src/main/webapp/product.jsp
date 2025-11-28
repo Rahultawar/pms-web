@@ -48,56 +48,16 @@
 <!-- Main Application Container -->
 <div class="app-shell">
 <!-- SIDEBAR -->
-<aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
-    <b>
-        <a href="DashboardServlet"
-           class="d-flex align-items-center mb-3 mb-md-0 p-2 me-md-auto text-decoration-none text-dark">
-            <img src="${iconUrl}" alt="Logo" width="40" height="40"
-                 style="border-radius: 8px;">
-            <span class="fs-6 ms-2">${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}</span>
-        </a>
-    </b>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item">
-            <a href="DashboardServlet" class="nav-link">
-                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-            </a>
-        </li>
-        <li>
-            <a href="ProductServlet" class="nav-link active" aria-current="page">
-                <i class="fas fa-pills me-2"></i> Product
-            </a>
-        </li>
-        <li>
-            <a href="DistributorServlet" class="nav-link">
-                <i class="fas fa-truck me-2"></i> Distributor
-            </a>
-        </li>
-                        <li>
-                            <a href="SaleServlet" class="nav-link">
-                                <i class="fas fa-file-invoice-dollar me-2"></i> Sales
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="nav-link">
-                                <i class="fas fa-user me-2"></i> Profile
-                            </a>
-                        </li>
-                        <li>
-                            <a href="${logoutUrl}" class="nav-link">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-</aside>
+<jsp:include page="sidebar.jsp">
+    <jsp:param name="activePage" value="product" />
+</jsp:include>
 <!-- /SIDEBAR -->
 
 <!-- MAIN CONTENT -->
 <main id="content-wrapper" class="flex-fill">
     <div class="container-fluid">
         <div class="row align-items-center mb-3">
-            <div class="col-md-8 col-12 mb-2 mb-md-0">
+            <div class="col-md-6 col-12 mb-2 mb-md-0">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0" id="breadcrumbItem">
                         <li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
@@ -105,13 +65,27 @@
                     </ol>
                 </nav>
             </div>
-            <div class="col-md-4 col-12 text-md-end">
+            <div class="col-md-3 col-12 mb-2 mb-md-0">
+                <div class="input-group">
+                    <input type="search" class="form-control" id="searchBox" placeholder="Search products...">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+            </div>
+            <div class="col-md-3 col-12 text-end">
                 <button class="btn btn-outline-success" id="addProduct"
                         data-action="show-form" data-mode="add">
                     <i class="fas fa-plus-circle me-2"></i>Add Product
                 </button>
             </div>
         </div>
+        <!-- Error message display -->
+        <c:if test="${not empty requestScope.errorMessage}">
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span><c:out value="${requestScope.errorMessage}"/></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </c:if>
         <div>
             <c:choose>
                 <c:when test="${empty productList}">
@@ -136,6 +110,7 @@
                                 <th>Expiry Date</th>
                                 <th>Quantity In Stock</th>
                                 <th>Selling Price</th>
+                                <th>Details</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -149,11 +124,11 @@
                                     <td>${product.expiryDate}</td>
                                     <td>${product.quantity}</td>
                                     <td>${product.sellingPrice}</td>
+                                    <td><a href="ProductServlet?viewId=${product.productId}" title="View Details"><i class="fas fa-info-circle"></i></a></td>
                                     <td><a href="ProductServlet?id=${product.productId}" title="Edit"><i
                                             class="fas fa-edit"></i></a></td>
-                     <td><a href="ProductServlet?deleteId=${product.productId}"
-                         data-confirm="Are you sure you want to delete this product?" title="Delete"><i class="fas fa-trash-alt"></i></a>
-                                    </td>
+                                    <td><a href="ProductServlet?deleteId=${product.productId}"
+                                         data-confirm="Are you sure you want to delete this product?" title="Delete"><i class="fas fa-trash-alt"></i></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>
@@ -190,17 +165,10 @@
                     <input type="hidden" id="productId" name="productId"
                            value="${requestScope.productDetails.productId}">
                     <input type="hidden" name="actionType"
-                           value="${requestScope.productDetails != null ? 'update' : 'add'}">
+                           value="${requestScope.actionTypeValue != null ? requestScope.actionTypeValue : (requestScope.productDetails != null ? 'update' : 'add')}">
                     <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
 
                     <!-- Form fields organized in two columns for better layout -->
-                    <div class="row">
-                    <input type="hidden" id="productId" name="productId"
-                           value="${requestScope.productDetails.productId}">
-                    <input type="hidden" name="actionType"
-                           value="${requestScope.productDetails != null ? 'update' : 'add'}">
-                    <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
-
                     <div class="row">
                         <!-- First Column -->
 
@@ -469,6 +437,40 @@
                     </div>
                 </form>
             </div>
+
+            <!-- Product Details View -->
+            <div id="productDetail" class="card form-card" style="display: none;">
+                <h5 class="card-title mb-3">Product Details</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Product Name:</strong> ${productDetails.productName}</p>
+                        <p><strong>Category:</strong> ${productDetails.category}</p>
+                        <p><strong>Manufacturer:</strong> ${productDetails.manufacturer}</p>
+                        <p><strong>Batch Number:</strong> ${productDetails.batchNumber}</p>
+                        <p><strong>Strength:</strong> ${productDetails.strength}</p>
+                        <p><strong>Location:</strong> ${productDetails.location}</p>
+                        <p><strong>Distributor:</strong>
+                            <c:forEach var="dist" items="${distributorList}">
+                                <c:if test="${dist.distributorId == productDetails.distributorId}">${dist.distributorName}</c:if>
+                            </c:forEach>
+                        </p>
+                        <p><strong>Sub Quantity:</strong> ${productDetails.subQuantity > 0 ? productDetails.subQuantity : 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Manufacturing Date:</strong> ${productDetails.manufacturingDate}</p>
+                        <p><strong>Expiry Date:</strong> ${productDetails.expiryDate}</p>
+                        <p><strong>Quantity:</strong> ${productDetails.quantity}</p>
+                        <p><strong>Reorder Level:</strong> ${productDetails.reorderLevel}</p>
+                        <p><strong>Purchasing Price:</strong> ${productDetails.purchasingPrice}</p>
+                        <p><strong>Selling Price:</strong> ${productDetails.sellingPrice}</p>
+                        <p><strong>Unit:</strong> ${productDetails.unit}</p>
+                        <p><strong>Created At:</strong> ${productDetails.createdAt}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="ProductServlet" class="btn btn-secondary">Back to List</a>
+                </div>
+            </div>
         </div>
     </div>
 </main>
@@ -479,7 +481,22 @@
 <!-- Shared JS -->
                 <script src="${appJs}"></script>
 
-<c:if test="${not empty requestScope.productDetails}">
+<c:if test="${requestScope.actionTypeValue == 'view'}">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var table = document.getElementById('productTable');
+            if (table) table.style.display = 'none';
+            var noBox = document.getElementById('noProductAvailable');
+            if (noBox) noBox.style.display = 'none';
+            var form = document.getElementById('productForm');
+            if (form) form.style.display = 'none';
+            var detail = document.getElementById('productDetail');
+            if (detail) detail.style.display = 'block';
+        });
+    </script>
+</c:if>
+
+<c:if test="${not empty requestScope.productDetails and requestScope.actionTypeValue != 'view'}">
     <script>
         // Ask shared module to show edit form when server provided productDetails
         document.addEventListener('DOMContentLoaded', function () {
