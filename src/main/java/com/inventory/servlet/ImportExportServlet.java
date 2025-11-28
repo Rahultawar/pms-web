@@ -1,7 +1,9 @@
-
 package com.inventory.servlet;
+
+import com.inventory.dao.CustomerDAO;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.ProductDAO;
+import com.inventory.models.Customer;
 import com.inventory.models.Distributor;
 import com.inventory.models.Product;
 import com.inventory.utils.BigDecimalUtil;
@@ -32,6 +34,7 @@ import java.util.List;
 public class ImportExportServlet extends HttpServlet {
     private ProductDAO productDAO = new ProductDAO();
     private DistributorDAO distributorDAO = new DistributorDAO();
+    private CustomerDAO customerDAO = new CustomerDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -51,6 +54,8 @@ public class ImportExportServlet extends HttpServlet {
                 downloadProductTemplate(response, userId);
             } else if ("distributors".equals(type)) {
                 downloadDistributorTemplate(response, userId);
+            } else if ("customers".equals(type)) {
+                downloadCustomerTemplate(response, userId);
             }
         } else {
             RequestDispatcher dispatcher = request.getRequestDispatcher("import-export.jsp");
@@ -91,13 +96,15 @@ public class ImportExportServlet extends HttpServlet {
                         result = importProducts(filePart.getInputStream(), userId);
                     } else if ("distributors".equals(importType)) {
                         result = importDistributors(filePart.getInputStream(), userId);
+                    } else if ("customers".equals(importType)) {
+                        result = importCustomers(filePart.getInputStream(), userId);
                     } else {
                         result = "Invalid import type.";
                     }
 
                     // Check if there were any successful imports
                     int successCount = 0;
-                    if ("products".equals(importType) || "distributors".equals(importType)) {
+                    if ("products".equals(importType) || "distributors".equals(importType) || "customers".equals(importType)) {
                         // Extract success count from result message
                         try {
                             String countStr = result.split(" ")[0];
@@ -152,6 +159,21 @@ public class ImportExportServlet extends HttpServlet {
         writer.println("ABC Pharma Distributors,Sarah Johnson,sarah@abcpharma.com,9876543210,\"456 Business Park, Sector 5\",Mumbai,Maharashtra,400001");
         writer.println("HealthCare Supplies,Mike Chen,mike@healthcaresupplies.com,8765432109,\"789 Medical Plaza, Block A\",Delhi,Delhi,110001");
         writer.println("Medical Distributors Inc,Emma Wilson,emma@medicadist.com,7654321098,\"321 Pharma Street, Suite 100\",Bangalore,Karnataka,560001");
+
+        writer.flush();
+    }
+
+    private void downloadCustomerTemplate(HttpServletResponse response, int userId) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"customers_template.csv\"");
+
+        PrintWriter writer = response.getWriter();
+        writer.println("customerName,contactNumber,userId");
+
+        // Add multiple sample rows with clear examples
+        writer.println("John Smith,9876543210," + userId);
+        writer.println("Sarah Johnson,8765432109," + userId);
+        writer.println("Mike Wilson,7654321098," + userId);
 
         writer.flush();
     }
@@ -288,6 +310,50 @@ public class ImportExportServlet extends HttpServlet {
         return result;
     }
 
+    private String importCustomers(java.io.InputStream inputStream, int userId) throws IOException {
+        List<String> errors = new ArrayList<>();
+        int successCount = 0;
+
+        try (java.util.Scanner scanner = new java.util.Scanner(inputStream)) {
+            boolean isFirstLine = true;
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) continue;
+
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    if (line.startsWith("customerName")) continue; // Skip header
+                }
+
+                String[] fields = parseCSVLine(line);
+                if (fields.length < 3) {
+                    errors.add("Invalid row format: " + line + " - Expected at least 3 fields (customerName, contactNumber, userId)");
+                    continue;
+                }
+
+                try {
+                    Customer customer = new Customer();
+                    customer.setCustomerName(fields[0].trim());
+                    customer.setContactNumber(fields[1].trim());
+                    customer.setUserId(Integer.parseInt(fields[2].trim()));
+
+                    customerDAO.addCustomer(customer);
+                    successCount++;
+
+                } catch (Exception e) {
+                    errors.add(generateUserFriendlyMessage(e, line, "customer"));
+                }
+            }
+        }
+
+        String result = successCount + " customers imported successfully.";
+        if (!errors.isEmpty()) {
+            result += " Errors: " + String.join("; ", errors);
+        }
+        return result;
+    }
+
     private String[] parseCSVLine(String line) {
         // Simple CSV parsing - handles quoted fields
         List<String> fields = new ArrayList<>();
@@ -365,6 +431,8 @@ public class ImportExportServlet extends HttpServlet {
                 if (keyName.contains("name")) {
                     if (type.equals("distributor")) {
                         fieldName = "distributor name";
+                    } else if (type.equals("customer")) {
+                        fieldName = "customer name";
                     } else {
                         fieldName = "product name";
                     }
@@ -374,6 +442,8 @@ public class ImportExportServlet extends HttpServlet {
                     fieldName = "email";
                 } else if (keyName.contains("phone")) {
                     fieldName = "phone";
+                } else if (keyName.contains("contact")) {
+                    fieldName = "contact number";
                 }
 
                 return "Duplicate " + fieldName + " '" + duplicateValue + "' already exists for this " + type;

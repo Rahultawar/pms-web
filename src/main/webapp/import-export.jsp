@@ -96,6 +96,7 @@
                                     <option value="">Choose what to import</option>
                                     <option value="products">Products</option>
                                     <option value="distributors">Distributors</option>
+                                    <option value="customers">Customers</option>
                                 </select>
                             </div>
 
@@ -119,6 +120,12 @@
                                         <p><strong>Distributors CSV should have these columns in order:</strong></p>
                                         <small>
                                             distributorName, contactPerson, email, phone, address, city, state, pinCode
+                                        </small>
+                                    </div>
+                                    <div id="customersFormat" style="display: none;">
+                                        <p><strong>Customers CSV should have these columns in order:</strong></p>
+                                        <small>
+                                            customerName, contactNumber, userId
                                         </small>
                                     </div>
                                 </div>
@@ -150,6 +157,10 @@
                                class="btn btn-outline-success">
                                 <i class="fas fa-file-csv me-2"></i>Download Distributors Template
                             </a>
+                            <a href="ImportExportServlet?action=downloadTemplate&type=customers"
+                               class="btn btn-outline-success">
+                                <i class="fas fa-file-csv me-2"></i>Download Customers Template
+                            </a>
                         </div>
 
                         <hr>
@@ -174,65 +185,105 @@
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Sample Data Formats</h5>
+                        <div class="format-selector">
+                            <label class="form-label me-3">Show Format:</label>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Format selector">
+                                <input type="radio" class="btn-check" name="formatSelector" id="showProducts" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="showProducts"><i class="fas fa-pills me-1"></i>Products</label>
+
+                                <input type="radio" class="btn-check" name="formatSelector" id="showDistributors" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="showDistributors"><i class="fas fa-truck me-1"></i>Distributors</label>
+
+                                <input type="radio" class="btn-check" name="formatSelector" id="showCustomers" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="showCustomers"><i class="fas fa-users me-1"></i>Customers</label>
+
+                                <input type="radio" class="btn-check" name="formatSelector" id="showAll" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="showAll"><i class="fas fa-list me-1"></i>All</label>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <!-- Products Sample -->
-                            <div class="col-lg-6 mb-3">
-                                <h6 class="text-primary"><i class="fas fa-pills me-2"></i>Products CSV Format</h6>
+                        <div class="row sample-data">
+                            <!-- Products CSV Format -->
+                            <div class="format-section format-products col-lg-4 mb-4">
+                                <h6 class="text-primary mb-3"><i class="fas fa-pills me-2"></i>Products CSV Format</h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-striped">
+                                    <table class="table table-sm table-striped table-hover">
                                         <thead class="table-light">
-                                        <tr>
-                                            <th>Column</th>
-                                            <th>Sample Value</th>
-                                            <th>Notes</th>
-                                        </tr>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Column Name</th>
+                                                <th>Sample</th>
+                                                <th>Notes</th>
+                                            </tr>
                                         </thead>
-                                        <tbody>
-                                        <tr><td>productName</td><td>Paracetamol 500mg</td><td>Required</td></tr>
-                                        <tr><td>category</td><td>Analgesic</td><td>Required</td></tr>
-                                        <tr><td>manufacturer</td><td>ABC Pharma</td><td>Required</td></tr>
-                                        <tr><td>batchNumber</td><td>BATCH2025</td><td>Required, unique</td></tr>
-                                        <tr><td>strength</td><td>500mg</td><td>Required</td></tr>
-                                        <tr><td>location</td><td>Rack A1</td><td>Optional</td></tr>
-                                        <tr><td>distributorId</td><td>ABC Distributors</td><td>ID number or Name</td></tr>
-                                        <tr><td>manufacturingDate</td><td>2025-01-01</td><td>YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, etc.</td></tr>
-                                        <tr><td>expiryDate</td><td>2026-01-01</td><td>YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, etc.</td></tr>
-                                        <tr><td>quantity</td><td>100</td><td>Integer</td></tr>
-                                        <tr><td>subQuantity</td><td>10</td><td>Optional, integer</td></tr>
-                                        <tr><td>reorderLevel</td><td>20</td><td>Integer</td></tr>
-                                        <tr><td>purchasingPrice</td><td>5.50</td><td>Decimal</td></tr>
-                                        <tr><td>sellingPrice</td><td>7.25</td><td>Decimal</td></tr>
-                                        <tr><td>unit</td><td>strip</td><td>strip/bottle/etc</td></tr>
+                                        <tbody class="table-group-divider">
+                                            <tr><td>1</td><td>productName</td><td>Paracetamol 500mg</td><td>Required</td></tr>
+                                            <tr><td>2</td><td>category</td><td>Analgesic</td><td>Required</td></tr>
+                                            <tr><td>3</td><td>manufacturer</td><td>ABC Pharma</td><td>Required</td></tr>
+                                            <tr><td>4</td><td>batchNumber</td><td>BATCH2025</td><td>Required</td></tr>
+                                            <tr><td>5</td><td>strength</td><td>500mg</td><td>Required</td></tr>
+                                            <tr><td>6</td><td>location</td><td>Rack A1</td><td>Optional</td></tr>
+                                            <tr><td>7</td><td>distributorId</td><td>ABC Distributors</td><td>ID or Name</td></tr>
+                                            <tr><td>8</td><td>manufacturingDate</td><td>2025-01-01</td><td>YYYY-MM-DD</td></tr>
+                                            <tr><td>9</td><td>expiryDate</td><td>2026-01-01</td><td>YYYY-MM-DD</td></tr>
+                                            <tr><td>10</td><td>quantity</td><td>100</td><td>Integer</td></tr>
+                                            <tr><td>11</td><td>subQuantity</td><td>10</td><td>Optional</td></tr>
+                                            <tr><td>12</td><td>reorderLevel</td><td>20</td><td>Integer</td></tr>
+                                            <tr><td>13</td><td>purchasingPrice</td><td>5.50</td><td>Decimal</td></tr>
+                                            <tr><td>14</td><td>sellingPrice</td><td>7.25</td><td>Decimal</td></tr>
+                                            <tr><td>15</td><td>unit</td><td>strip</td><td>strip/etc</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            <!-- Distributors Sample -->
-                            <div class="col-lg-6 mb-3">
-                                <h6 class="text-primary"><i class="fas fa-truck me-2"></i>Distributors CSV Format</h6>
+                            <!-- Distributors CSV Format -->
+                            <div class="format-section format-distributors col-lg-4 mb-4">
+                                <h6 class="text-primary mb-3"><i class="fas fa-truck me-2"></i>Distributors CSV Format</h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-striped">
+                                    <table class="table table-sm table-striped table-hover">
                                         <thead class="table-light">
-                                        <tr>
-                                            <th>Column</th>
-                                            <th>Sample Value</th>
-                                            <th>Notes</th>
-                                        </tr>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Column Name</th>
+                                                <th>Sample</th>
+                                                <th>Notes</th>
+                                            </tr>
                                         </thead>
-                                        <tbody>
-                                        <tr><td>distributorName</td><td>ABC Pharma Corp</td><td>Required, unique</td></tr>
-                                        <tr><td>contactPerson</td><td>John Smith</td><td>Optional</td></tr>
-                                        <tr><td>email</td><td>john@abc.com</td><td>Required</td></tr>
-                                        <tr><td>phone</td><td>9876543210</td><td>Required, 10 digits</td></tr>
-                                        <tr><td>address</td><td>123 Main Street</td><td>Optional</td></tr>
-                                        <tr><td>city</td><td>Mumbai</td><td>Optional</td></tr>
-                                        <tr><td>state</td><td>Maharashtra</td><td>Optional</td></tr>
-                                        <tr><td>pinCode</td><td>400001</td><td>Optional</td></tr>
+                                        <tbody class="table-group-divider">
+                                            <tr><td>1</td><td>distributorName</td><td>ABC Pharma Corp</td><td>Required</td></tr>
+                                            <tr><td>2</td><td>contactPerson</td><td>John Smith</td><td>Optional</td></tr>
+                                            <tr><td>3</td><td>email</td><td>john@abc.com</td><td>Required</td></tr>
+                                            <tr><td>4</td><td>phone</td><td>9876543210</td><td>10 digits</td></tr>
+                                            <tr><td>5</td><td>address</td><td>123 Main St</td><td>Optional</td></tr>
+                                            <tr><td>6</td><td>city</td><td>Mumbai</td><td>Optional</td></tr>
+                                            <tr><td>7</td><td>state</td><td>Maharashtra</td><td>Optional</td></tr>
+                                            <tr><td>8</td><td>pinCode</td><td>400001</td><td>Optional</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Customers CSV Format -->
+                            <div class="format-section format-customers col-lg-4 mb-4">
+                                <h6 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Customers CSV Format</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Column Name</th>
+                                                <th>Sample</th>
+                                                <th>Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="table-group-divider">
+                                            <tr><td>1</td><td>customerName</td><td>John Smith</td><td>Required</td></tr>
+                                            <tr><td>2</td><td>contactNumber</td><td>9876543210</td><td>Required</td></tr>
+                                            <tr><td>3</td><td>userId</td><td>1</td><td>Integer</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -259,19 +310,81 @@ document.getElementById('importType').addEventListener('change', function() {
     var instructions = document.getElementById('formatInstructions');
     var productsFormat = document.getElementById('productsFormat');
     var distributorsFormat = document.getElementById('distributorsFormat');
+    var customersFormat = document.getElementById('customersFormat');
 
     if (selectedType) {
         instructions.style.display = 'block';
         if (selectedType === 'products') {
             productsFormat.style.display = 'block';
             distributorsFormat.style.display = 'none';
+            customersFormat.style.display = 'none';
         } else if (selectedType === 'distributors') {
             productsFormat.style.display = 'none';
             distributorsFormat.style.display = 'block';
+            customersFormat.style.display = 'none';
+        } else if (selectedType === 'customers') {
+            productsFormat.style.display = 'none';
+            distributorsFormat.style.display = 'none';
+            customersFormat.style.display = 'block';
         }
     } else {
         instructions.style.display = 'none';
     }
+});
+
+// Format selector for sample data
+document.addEventListener('DOMContentLoaded', function() {
+    function updateFormatDisplay() {
+        var selected = document.querySelector('input[name="formatSelector"]:checked');
+        var value = selected ? selected.id : 'showProducts';
+
+        var sections = document.querySelectorAll('.format-section');
+        var container = document.querySelector('.sample-data');
+
+        sections.forEach(function(section) {
+            section.style.display = 'none';
+            section.classList.remove('format-single');
+            // Reset classes for when showing all
+            section.classList.remove('col-12');
+            if (!section.classList.contains('col-lg-4')) {
+                section.classList.add('col-lg-4');
+            }
+            section.classList.add('mb-4');
+        });
+
+        if (value === 'showAll') {
+            sections.forEach(function(section) {
+                section.style.display = 'block';
+                section.classList.add('col-lg-4');
+                section.classList.remove('col-12');
+            });
+        } else {
+            var targetClass = '';
+            if (value === 'showProducts') {
+                targetClass = 'format-products';
+            } else if (value === 'showDistributors') {
+                targetClass = 'format-distributors';
+            } else if (value === 'showCustomers') {
+                targetClass = 'format-customers';
+            }
+
+            var targetSection = document.querySelector('.' + targetClass);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                targetSection.classList.add('format-single');
+                targetSection.classList.add('col-12');
+                targetSection.classList.add('mb-4');
+            }
+        }
+    }
+
+    // Initialize - show products by default
+    updateFormatDisplay();
+
+    // Add event listeners to radio buttons
+    document.querySelectorAll('input[name="formatSelector"]').forEach(function(radio) {
+        radio.addEventListener('change', updateFormatDisplay);
+    });
 });
 </script>
 
