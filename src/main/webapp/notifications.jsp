@@ -86,22 +86,35 @@
 
                                 <c:if test="${not empty lowStockProducts}">
                                     <div class="card mb-4">
-                                        <div class="card-header bg-danger text-white">
+                                        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
                                             <h5 class="mb-0">
                                                 <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alerts
+                                                <span class="badge bg-light text-danger ms-2">${fn:length(lowStockProducts)}</span>
                                             </h5>
+                                            <form action="NotificationServlet" method="post" style="display: inline;">
+                                                <input type="hidden" name="action" value="markAllAsRead">
+                                                <input type="hidden" name="type" value="lowStock">
+                                                <button type="submit" class="btn btn-light btn-sm">
+                                                    <i class="fas fa-check-double me-1"></i>Mark All as Read
+                                                </button>
+                                            </form>
                                         </div>
                                         <div class="card-body">
                                             <div class="list-group list-group-flush">
                                                 <c:forEach var="product" items="${lowStockProducts}" varStatus="status">
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center" id="low_stock_${status.index}">
+                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
                                                         <div>
                                                             <strong>${product.productName}</strong> is low stock
                                                             <small class="text-muted">(Current: ${product.quantity}, Reorder: ${product.reorderLevel})</small>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-danger" onclick="dismissNotification('low_stock_${status.index}')">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
+                                                        <form action="NotificationServlet" method="post" style="display: inline;">
+                                                            <input type="hidden" name="action" value="markAsRead">
+                                                            <input type="hidden" name="type" value="lowStock">
+                                                            <input type="hidden" name="productId" value="${product.productId}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as Read">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </c:forEach>
                                             </div>
@@ -111,22 +124,35 @@
 
                                 <c:if test="${not empty expiringProducts}">
                                     <div class="card mb-4">
-                                        <div class="card-header bg-warning">
+                                        <div class="card-header bg-warning d-flex justify-content-between align-items-center">
                                             <h5 class="mb-0">
                                                 <i class="fas fa-clock me-2"></i>Expiry Alerts
+                                                <span class="badge bg-dark text-warning ms-2">${fn:length(expiringProducts)}</span>
                                             </h5>
+                                            <form action="NotificationServlet" method="post" style="display: inline;">
+                                                <input type="hidden" name="action" value="markAllAsRead">
+                                                <input type="hidden" name="type" value="expiry">
+                                                <button type="submit" class="btn btn-dark btn-sm">
+                                                    <i class="fas fa-check-double me-1"></i>Mark All as Read
+                                                </button>
+                                            </form>
                                         </div>
                                         <div class="card-body">
                                             <div class="list-group list-group-flush">
                                                 <c:forEach var="product" items="${expiringProducts}" varStatus="status">
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center" id="expiry_${status.index}">
+                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
                                                         <div>
                                                             <strong>${product.productName}</strong> is near expiry
                                                             <small class="text-muted">(Expires: <fmt:formatDate value="${product.expiryDate}" pattern="dd MMM yyyy"/>)</small>
                                                         </div>
-                                                        <button class="btn btn-sm btn-outline-warning" onclick="dismissNotification('expiry_${status.index}')">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
+                                                        <form action="NotificationServlet" method="post" style="display: inline;">
+                                                            <input type="hidden" name="action" value="markAsRead">
+                                                            <input type="hidden" name="type" value="expiry">
+                                                            <input type="hidden" name="productId" value="${product.productId}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as Read">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </c:forEach>
                                             </div>
@@ -143,16 +169,6 @@
 
                 <script src="${appJs}"></script>
                 <script src="${bootstrapJs}"></script>
-                <script>
-                    function dismissNotification(notificationId) {
-                        // Find the list-group-item that contains the button
-                        const button = event.target.closest('button');
-                        const listItem = button.closest('.list-group-item');
-                        if (listItem) {
-                            listItem.remove();
-                        }
-                    }
-                </script>
             </div>
         </body>
 
