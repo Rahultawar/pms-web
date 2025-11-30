@@ -315,7 +315,23 @@ public class ProductDAO {
         }
     }
 
-    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER VERIFICATION
+    public boolean deductProductSubQuantity(int productId, int subQuantity) {
+        String sql = "UPDATE product SET subQuantity = subQuantity - ? WHERE productId = ? AND subQuantity >= ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, subQuantity);
+            stmt.setInt(2, productId);
+            stmt.setInt(3, subQuantity);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER
+    // VERIFICATION
     public List<Product> getLowStockProducts(int userId) {
         List<Product> lowStockProducts = new ArrayList<>();
 

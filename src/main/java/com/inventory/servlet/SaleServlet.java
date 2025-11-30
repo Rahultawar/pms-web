@@ -136,6 +136,12 @@ public class SaleServlet extends HttpServlet {
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
         dispatcher.forward(request, response);
+        }catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading sales: " + e.getMessage());
+            RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
+            dispatcher.forward(request, response);
+        }
     }
 
     private void handleAddSale(HttpServletRequest request, HttpServletResponse response)
