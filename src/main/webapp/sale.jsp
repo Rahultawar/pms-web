@@ -136,7 +136,7 @@
                                                     <td>₹${sale.amountGivenByCustomer}</td>
                                                     <td>
                                                         <c:choose>
-                                                            <c:when test="${sale.status == 'paid'}">
+                                                            <c:when test="${sale.status.name() == 'paid'}">
                                                                 <span class="badge bg-success">Paid</span>
                                                             </c:when>
                                                             <c:otherwise>
@@ -154,8 +154,8 @@
                                                         </c:choose>
                                                     </td>
                                                     <td>${sale.saleDate}</td>
-                                                    <td><a href="SaleServlet?id=${sale.saleId}" title="Edit"><i class="fas fa-edit"></i></a></td>
-                                                    <td><a href="SaleServlet?deleteId=${sale.saleId}" data-confirm="Are you sure you want to delete this sale?" title="Delete"><i class="fas fa-trash-alt"></i></a></td>
+                                                    <td><a href="SaleServlet?id=${sale.saleId}&page=${currentPage}" title="Edit"><i class="fas fa-edit"></i></a></td>
+                                                    <td><a href="SaleServlet?deleteId=${sale.saleId}&page=${currentPage}" data-confirm="Are you sure you want to delete this sale?" title="Delete"><i class="fas fa-trash-alt"></i></a></td>
                                                 </tr>
                                             </c:forEach>
                                         </tbody>
@@ -191,6 +191,7 @@
                             <!-- Hidden fields for sale ID and action type -->
                             <input type="hidden" id="saleId" name="saleId" value="${s.saleId}">
                             <input type="hidden" name="actionType" value="${s != null ? 'update' : 'add'}">
+                            <input type="hidden" name="currentPage" value="${currentPage}">
 
                             <!-- Form fields organized in two columns for better layout -->
                             <div class="row">

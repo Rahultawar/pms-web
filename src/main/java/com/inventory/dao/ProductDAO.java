@@ -370,4 +370,33 @@ public class ProductDAO {
         }
         return expiringProducts;
     }
+
+    // GET PRODUCT CATEGORY DISTRIBUTION
+    public java.util.Map<String, Integer> getProductCategoryDistribution(int userId) {
+        java.util.Map<String, Integer> categoryData = new java.util.LinkedHashMap<>();
+        String query = "SELECT category, COUNT(*) as count " +
+                "FROM product " +
+                "WHERE userId = ? " +
+                "GROUP BY category " +
+                "ORDER BY count DESC " +
+                "LIMIT 10";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String category = resultSet.getString("category");
+                    if (category != null && !category.trim().isEmpty()) {
+                        categoryData.put(category, resultSet.getInt("count"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return categoryData;
+    }
 }

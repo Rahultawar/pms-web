@@ -153,10 +153,11 @@ public class SaleDAO {
 
     // SUM TODAY'S SALES AMOUNT BY USER ID
     public double getTodaySalesAmount(int userId) {
-        String query = "SELECT COALESCE(SUM(amountGivenByCustomer), 0) " +
+        String query = "SELECT COALESCE(SUM(totalAmount), 0) " +
                 "FROM sale " +
                 "WHERE userId = ? " +
-                "AND DATE(saleDate) = CURDATE()";
+                "AND DATE(saleDate) = CURDATE() " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid')";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
@@ -177,11 +178,12 @@ public class SaleDAO {
 
     // SUM THIS MONTH'S SALES AMOUNT BY USER ID
     public double getMonthlySalesAmount(int userId) {
-        String query = "SELECT COALESCE(SUM(amountGivenByCustomer), 0) " +
+        String query = "SELECT COALESCE(SUM(totalAmount), 0) " +
                 "FROM sale " +
                 "WHERE userId = ? " +
                 "AND YEAR(saleDate) = YEAR(CURDATE()) " +
-                "AND MONTH(saleDate) = MONTH(CURDATE())";
+                "AND MONTH(saleDate) = MONTH(CURDATE()) " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid')";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
@@ -328,6 +330,90 @@ public class SaleDAO {
         return 0;
     }
 
+    // GET DAILY SALES TREND FOR LAST 7 DAYS
+    public java.util.Map<String, Double> getDailySalesTrend(int userId) {
+        java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
+        String query = "SELECT DATE_FORMAT(saleDate, '%a') as dayName, " +
+                "COALESCE(SUM(totalAmount), 0) as total " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid') " +
+                "GROUP BY DATE(saleDate), dayName " +
+                "ORDER BY DATE(saleDate)";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    salesData.put(resultSet.getString("dayName"), resultSet.getDouble("total"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return salesData;
+    }
+
+    // GET MONTHLY SALES TREND FOR LAST 12 MONTHS
+    public java.util.Map<String, Double> getMonthlySalesTrend(int userId) {
+        java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
+        String query = "SELECT DATE_FORMAT(saleDate, '%b') as monthName, " +
+                "COALESCE(SUM(totalAmount), 0) as total " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH) " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid') " +
+                "GROUP BY YEAR(saleDate), MONTH(saleDate), monthName " +
+                "ORDER BY YEAR(saleDate), MONTH(saleDate)";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    salesData.put(resultSet.getString("monthName"), resultSet.getDouble("total"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return salesData;
+    }
+
+    // GET YEARLY SALES TREND FOR LAST 5 YEARS
+    public java.util.Map<String, Double> getYearlySalesTrend(int userId) {
+        java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
+        String query = "SELECT YEAR(saleDate) as yearValue, " +
+                "COALESCE(SUM(totalAmount), 0) as total " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 4 YEAR) " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid') " +
+                "GROUP BY YEAR(saleDate) " +
+                "ORDER BY YEAR(saleDate)";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    salesData.put(String.valueOf(resultSet.getInt("yearValue")), resultSet.getDouble("total"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return salesData;
+    }
+
     // HELPER METHOD - MAP RESULTSET TO SALE OBJECT
     private Sale mapResultSetToSale(ResultSet resultSet) throws SQLException {
         Sale sale = new Sale();
@@ -351,12 +437,17 @@ public class SaleDAO {
             sale.setPaymentMethod(Sale.PaymentMethod.CASH); // DEFAULT TO CASH
         }
 
-        // HANDLE SALESTATUS ENUM (LOWERCASE) - SUPPORTS BOTH OLD UPPERCASE AND NEW
-        // LOWERCASE DATA
+        // HANDLE SALESTATUS ENUM - SUPPORTS BOTH 'Completed'/'completed' AND 'paid'/'pending'
         String statusStr = resultSet.getString("status");
         try {
-            sale.setStatus(Sale.SaleStatus.valueOf(statusStr.toLowerCase()));
-        } catch (IllegalArgumentException e) {
+            String normalizedStatus = statusStr.toLowerCase();
+            // MAP 'completed' TO 'paid'
+            if (normalizedStatus.equals("completed")) {
+                sale.setStatus(Sale.SaleStatus.paid);
+            } else {
+                sale.setStatus(Sale.SaleStatus.valueOf(normalizedStatus));
+            }
+        } catch (IllegalArgumentException | NullPointerException e) {
             sale.setStatus(Sale.SaleStatus.pending); // DEFAULT TO PENDING
         }
 
@@ -382,5 +473,104 @@ public class SaleDAO {
         }
 
         return sale;
+    }
+
+    // GET PENDING PAYMENTS AMOUNT
+    public double getPendingPaymentsAmount(int userId) {
+        String query = "SELECT COALESCE(SUM(totalAmount), 0) " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND LOWER(status) = 'pending'";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0.0;
+    }
+
+    // GET PENDING PAYMENTS COUNT
+    public int getPendingPaymentsCount(int userId) {
+        String query = "SELECT COUNT(*) " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND LOWER(status) = 'pending'";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    // GET PAYMENT METHOD DISTRIBUTION
+    public java.util.Map<String, Integer> getPaymentMethodDistribution(int userId) {
+        java.util.Map<String, Integer> paymentData = new java.util.LinkedHashMap<>();
+        String query = "SELECT paymentMethod, COUNT(*) as count " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid') " +
+                "GROUP BY paymentMethod " +
+                "ORDER BY count DESC";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String method = resultSet.getString("paymentMethod");
+                    if (method != null && !method.trim().isEmpty()) {
+                        paymentData.put(method, resultSet.getInt("count"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return paymentData;
+    }
+
+    // GET YEARLY SALES AMOUNT
+    public double getYearlySalesAmount(int userId) {
+        String query = "SELECT COALESCE(SUM(totalAmount), 0) " +
+                "FROM sale " +
+                "WHERE userId = ? " +
+                "AND YEAR(saleDate) = YEAR(CURDATE()) " +
+                "AND (LOWER(status) = 'completed' OR LOWER(status) = 'paid')";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getDouble(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0.0;
     }
 }
