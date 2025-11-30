@@ -50,9 +50,6 @@ CREATE TABLE `customer` (
   ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- If customer table already exists, run this to add createdAt column:
--- ALTER TABLE customer ADD COLUMN createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
 CREATE TABLE `distributor` (
   `distributorId` INT NOT NULL AUTO_INCREMENT,
   `distributorName` VARCHAR(255) NOT NULL,
@@ -71,4 +68,42 @@ CREATE TABLE `distributor` (
   FOREIGN KEY (userId) REFERENCES user(userId)
   ON DELETE CASCADE
   ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `sale` (
+  `saleId` INT NOT NULL AUTO_INCREMENT,
+  `customerId` INT DEFAULT NULL,
+  `userId` INT NOT NULL,
+  `productId` INT NOT NULL,
+  `distributorId` INT NOT NULL,
+  `quantity` INT NOT NULL,
+  `subQuantity` INT DEFAULT NULL,
+  `paymentMethod` VARCHAR(255) NOT NULL,
+  `saleDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `discount` DECIMAL(13,2) DEFAULT 0,
+  `totalAmount` DECIMAL(13,2) NOT NULL,
+  `amountGivenByCustomer` DECIMAL(13,2) NOT NULL,
+  `status` VARCHAR(255) NOT NULL DEFAULT 'pending',
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`saleId`),
+  KEY `idx_sale_customer` (`customerId`),
+  KEY `idx_sale_user` (`userId`),
+  KEY `idx_sale_product` (`productId`),
+  KEY `idx_sale_distributor` (`distributorId`),
+  CONSTRAINT `fk_sale_customer`
+    FOREIGN KEY (`customerId`) REFERENCES `customer`(`customerId`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_user`
+    FOREIGN KEY (`userId`) REFERENCES `user`(`userId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_product`
+    FOREIGN KEY (`productId`) REFERENCES `product`(`productId`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_distributor`
+    FOREIGN KEY (`distributorId`) REFERENCES `distributor`(`distributorId`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

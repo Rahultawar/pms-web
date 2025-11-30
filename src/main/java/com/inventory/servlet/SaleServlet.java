@@ -1,10 +1,15 @@
 package com.inventory.servlet;
 
+import com.inventory.dao.CustomerDAO;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.ProductDAO;
 import com.inventory.dao.SaleDAO;
+import com.inventory.models.Customer;
+import com.inventory.models.Distributor;
 import com.inventory.models.Product;
 import com.inventory.models.Sale;
+import com.inventory.models.Sale.PaymentMethod;
+import com.inventory.models.Sale.SaleStatus;
 import com.inventory.utils.BigDecimalUtil;
 
 import javax.servlet.RequestDispatcher;
@@ -13,23 +18,25 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @WebServlet("/SaleServlet")
 public class SaleServlet extends HttpServlet {
     SaleDAO saleDAO = new SaleDAO();
     ProductDAO productDAO = new ProductDAO();
     DistributorDAO distributorDAO = new DistributorDAO();
+    CustomerDAO customerDAO = new CustomerDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String actionType = request.getParameter("actionType");
-        if (actionType == null || actionType.isEmpty()) {
+        if (actionType == null || actionType.isEmpty())
             actionType = "add";
-        }
 
         if ("add".equalsIgnoreCase(actionType)) {
             handleAddSale(request, response);
@@ -43,291 +50,317 @@ public class SaleServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
-        Integer userId = (Integer) request.getSession().getAttribute("userId");
-        if (userId == null) {
+
+        HttpSession session = request.getSession(false);
+        Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
+        
+        if (session == null || userId == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
-        String deleteIdParam = request.getParameter("deleteId");
-        if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
-            try {
-                int deleteId = Integer.parseInt(deleteIdParam);
-                Sale existingSale = saleDAO.getSaleById(deleteId);
-                if (existingSale != null) {
-                    // Restore product quantity before deleting sale
-                    // productDAO.addProductQuantity(existingSale.getProductId(),
-                    // existingSale.getQuantity());
+        try {
+            // HANDLE EDIT REQUEST
+            String idParam = request.getParameter("id");
+            if (idParam != null) {
+                int saleId = Integer.parseInt(idParam);
+                Sale sale = saleDAO.getSaleById(saleId);
+                if (sale != null && sale.getUserId().equals(userId)) {
+                    request.setAttribute("saleDetails", sale);
+                } else {
+                    request.setAttribute("errorMessage", "Sale not found or unauthorized access.");
                 }
-//                saleDAO.deleteSale(deleteId);
-                response.sendRedirect("SaleServlet?status=deleted");
-                return;
-            } catch (NumberFormatException ignored) {
-                // fall through and render page with error message
-                request.setAttribute("errorMessage", "Invalid sale id for deletion.");
             }
-        }
 
-        String editIdParam = request.getParameter("editId");
-        if (editIdParam != null && !editIdParam.isEmpty()) {
-            try {
-                int editId = Integer.parseInt(editIdParam);
-                Sale sale = saleDAO.getSaleById(editId);
-                request.setAttribute("saleDetails", sale);
-            } catch (NumberFormatException ignored) {
-                request.setAttribute("errorMessage", "Invalid sale id for edit.");
+            // HANDLE DELETE REQUEST
+            String deleteIdParam = request.getParameter("deleteId");
+            if (deleteIdParam != null) {
+                int saleId = Integer.parseInt(deleteIdParam);
+                Sale sale = saleDAO.getSaleById(saleId);
+                if (sale != null && sale.getUserId().equals(userId)) {
+                    boolean deleted = saleDAO.deleteSale(saleId);
+                    if (deleted) {
+                        response.sendRedirect("SaleServlet?msg=Sale deleted successfully");
+                        return;
+                    } else {
+                        request.setAttribute("errorMessage", "Failed to delete sale.");
+                    }
+                } else {
+                    request.setAttribute("errorMessage", "Sale not found or unauthorized access.");
+                }
             }
-        }
 
-        int page = 1;
-        int recordsPerPage = 5;
-        String pageParam = request.getParameter("page");
-        if (pageParam != null) {
-            try {
-                page = Integer.parseInt(pageParam);
-            } catch (NumberFormatException ignored) {
-                page = 1;
+            // LOAD PRODUCTS FOR THE LOGGED-IN USER
+            List<Product> productList = productDAO.getProductsByUserId(userId);
+            request.setAttribute("productList", productList);
+
+            // LOAD DISTRIBUTORS FOR THE LOGGED-IN USER
+            List<Distributor> distributorList = distributorDAO.getAllDistributor(userId);
+            request.setAttribute("distributorList", distributorList);
+
+            // LOAD CUSTOMERS FOR THE LOGGED-IN USER
+            List<Customer> customerList = customerDAO.getCustomersByUserId(userId);
+            request.setAttribute("customerList", customerList);
+
+            // LOAD SALES WITH PAGINATION
+            int page = 1;
+            int recordsPerPage = 10;
+
+            if (request.getParameter("page") != null) {
+                try {
+                    page = Integer.parseInt(request.getParameter("page"));
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
             }
+
+            List<Sale> saleList = saleDAO.getSalesByUserId(userId, page, recordsPerPage);
+            int totalRecords = saleDAO.getTotalSalesByUserId(userId);
+            int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
+
+            request.setAttribute("saleList", saleList);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("noOfPages", totalPages);
+
+            // FORWARD TO SALE.JSP
+            request.getRequestDispatcher("sale.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading sale page: " + e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
-
-        int offset = (page - 1) * recordsPerPage;
-        request.setAttribute("saleList", saleDAO.getSalesPaginated(offset, recordsPerPage));
-        int totalRecords = saleDAO.countSale();
-        int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
-        request.setAttribute("noOfPages", totalPages);
-        request.setAttribute("currentPage", page);
-
-        request.setAttribute("productList", productDAO.getProductsPaginated(0, 1000, userId));
-        request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
-
-        RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
-        dispatcher.forward(request, response);
     }
 
     private void handleAddSale(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
-            response.sendRedirect("index.jsp");
+            response.sendRedirect("login.jsp");
             return;
         }
 
-        Sale sale = new Sale();
         try {
-            Product product = null;
-            String productParam = request.getParameter("selProduct");
-            if (productParam != null && !productParam.isEmpty()) {
-                int productId = Integer.parseInt(productParam);
-                product = productDAO.getProductById(productId, userId);
-            }
-
-            populateSaleFromRequest(request, sale, product);
-            sale.setSaleDate(LocalDateTime.now());
+            int productId = Integer.parseInt(request.getParameter("selProduct"));
+            Product product = productDAO.getProductByIdAndUserId(productId, userId);
 
             if (product == null) {
-                request.setAttribute("saleDetails", sale);
-                request.setAttribute("errorMessage", "Product not found.");
-                forwardToSaleJsp(request, response);
-                return;
+                throw new IllegalArgumentException("Product not found or unauthorized");
             }
 
-            // Check if sufficient stock is available
-            int quantityToSell = sale.getQuantity();
-            if (product.getQuantity() < quantityToSell) {
-                request.setAttribute("saleDetails", sale);
-                request.setAttribute("errorMessage", "Insufficient stock. Available: " + product.getQuantity()
-                        + ", Required: " + quantityToSell);
-                forwardToSaleJsp(request, response);
-                return;
+            Sale sale = new Sale();
+            populateSaleFromRequest(request, sale, product, userId);
+
+            // VALIDATE QUANTITY AVAILABILITY BEFORE DEDUCTING
+            int quantity = sale.getQuantity();
+            int subQuantity = sale.getSubQuantity() != null ? sale.getSubQuantity() : 0;
+
+            // CHECK IF SUFFICIENT QUANTITY AVAILABLE
+            if (product.getQuantity() < quantity) {
+                throw new IllegalArgumentException("Insufficient quantity available. You have requested " +
+                        quantity + " but only " + product.getQuantity() + " available.");
             }
 
-            // Deduct product quantity from inventory
-            boolean deducted = productDAO.deductProductQuantity(product.getProductId(), quantityToSell);
-            if (!deducted) {
-                request.setAttribute("saleDetails", sale);
-                request.setAttribute("errorMessage", "Failed to update product inventory. Please try again.");
-                forwardToSaleJsp(request, response);
-                return;
+            // CHECK IF SUFFICIENT SUBQUANTITY AVAILABLE
+            if (subQuantity > 0) {
+                Integer productSubQty = product.getSubQuantity();
+                if (productSubQty == null || productSubQty < subQuantity) {
+                    throw new IllegalArgumentException("Insufficient sub-quantity available. You have requested " +
+                            subQuantity + " but only " + (productSubQty != null ? productSubQty : 0) + " available.");
+                }
+            }
+
+            // DEDUCT INVENTORY AFTER VALIDATION
+            if (!productDAO.deductProductQuantity(productId, quantity)) {
+                throw new IllegalArgumentException("Failed to deduct quantity from inventory");
+            }
+
+            if (subQuantity > 0 && !productDAO.deductProductSubQuantity(productId, subQuantity)) {
+                throw new IllegalArgumentException("Failed to deduct sub-quantity from inventory");
             }
 
             saleDAO.addSale(sale);
-            response.sendRedirect("SaleServlet?status=success");
+            response.sendRedirect("SaleServlet?msg=Sale added successfully");
         } catch (Exception e) {
-            request.setAttribute("saleDetails", sale);
-            request.setAttribute("errorMessage", "Unable to add sale: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("errorMessage", e.getMessage());
             forwardToSaleJsp(request, response);
         }
     }
 
     private void handleUpdateSale(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
-        Sale sale = new Sale();
         try {
             int saleId = Integer.parseInt(request.getParameter("saleId"));
             Sale existing = saleDAO.getSaleById(saleId);
-            if (existing == null) {
-                request.setAttribute("errorMessage", "Sale not found.");
-                request.setAttribute("saleDetails", sale);
+            
+            if (existing == null || !existing.getUserId().equals(userId)) {
+                request.setAttribute("errorMessage", "Sale not found or unauthorized access.");
                 forwardToSaleJsp(request, response);
                 return;
             }
 
+            Sale sale = new Sale();
             sale.setSaleId(saleId);
             sale.setSaleDate(existing.getSaleDate());
 
-            Product product = null;
-            String productParam = request.getParameter("selProduct");
-            if (productParam != null && !productParam.isEmpty()) {
-                int productId = Integer.parseInt(productParam);
-                product = productDAO.getProductById(productId, userId);
-            }
+            int productId = Integer.parseInt(request.getParameter("selProduct"));
+            Product product = productDAO.getProductByIdAndUserId(productId, userId);
 
-            populateSaleFromRequest(request, sale, product);
-
-            if (productParam != null && !productParam.isEmpty() && product == null) {
+            if (product == null) {
+                request.setAttribute("errorMessage", "Product not found.");
                 request.setAttribute("saleDetails", sale);
-                request.setAttribute("errorMessage", "Product not found for sale update.");
                 forwardToSaleJsp(request, response);
                 return;
             }
 
-            // Handle inventory adjustment when updating sale
-            int oldQuantity = existing.getQuantity();
-            int newQuantity = sale.getQuantity();
-            int oldProductId = existing.getProductId();
-            int newProductId = sale.getProductId();
+            populateSaleFromRequest(request, sale, product, userId);
 
-            // If product changed or quantity changed, adjust inventory
-            if (oldProductId != newProductId) {
-                // Restore old product quantity
-                // productDAO.addProductQuantity(oldProductId, oldQuantity);
-                // Deduct from new product
-                if (product != null) {
-                    if (product.getQuantity() < newQuantity) {
-                        request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage",
-                                "Insufficient stock for new product. Available: " + product.getQuantity());
-                        forwardToSaleJsp(request, response);
-                        return;
-                    }
-                    boolean deducted = productDAO.deductProductQuantity(newProductId, newQuantity);
-                    if (!deducted) {
-                        // Rollback the addition
-                        productDAO.deductProductQuantity(oldProductId, oldQuantity);
-                        request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage", "Failed to update product inventory.");
-                        forwardToSaleJsp(request, response);
-                        return;
-                    }
-                }
-            } else if (oldQuantity != newQuantity) {
-                // Same product, different quantity
-                int difference = newQuantity - oldQuantity;
-                if (difference > 0) {
-                    // Need to deduct more
-                    if (product != null && product.getQuantity() < difference) {
-                        request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage", "Insufficient stock. Available: "
-                                + product.getQuantity() + ", Additional needed: " + difference);
-                        forwardToSaleJsp(request, response);
-                        return;
-                    }
-                    boolean deducted = productDAO.deductProductQuantity(newProductId, difference);
-                    if (!deducted) {
-                        request.setAttribute("saleDetails", sale);
-                        request.setAttribute("errorMessage", "Failed to update product inventory.");
-                        forwardToSaleJsp(request, response);
-                        return;
-                    }
-                } else if (difference < 0) {
-                    // Return some quantity
-                    // productDAO.addProductQuantity(newProductId, Math.abs(difference));
-                }
+            // UPDATE THE SALE
+            Sale updatedSale = saleDAO.updateSale(sale);
+            if (updatedSale != null) {
+                response.sendRedirect("SaleServlet?msg=Sale updated successfully");
+            } else {
+                request.setAttribute("saleDetails", sale);
+                request.setAttribute("errorMessage", "Failed to update sale.");
+                forwardToSaleJsp(request, response);
             }
-
-//            saleDAO.updateSale(sale);
-
-            response.sendRedirect("SaleServlet?status=success");
         } catch (Exception e) {
-            request.setAttribute("saleDetails", sale);
+            e.printStackTrace();
             request.setAttribute("errorMessage", "Unable to update sale: " + e.getMessage());
             forwardToSaleJsp(request, response);
         }
     }
 
-    private void populateSaleFromRequest(HttpServletRequest request, Sale sale, Product product) {
+    private void populateSaleFromRequest(HttpServletRequest request, Sale sale, Product product, Integer userId) {
         int productId = product != null ? product.getProductId() : Integer.parseInt(request.getParameter("selProduct"));
         sale.setProductId(productId);
+        sale.setUserId(userId);
 
+        // AUTO-SELECT DISTRIBUTOR IF PRODUCT HAS ONLY ONE DISTRIBUTOR
         String distributorParam = request.getParameter("selDistributor");
-        Integer distributorId = null;
         if (distributorParam != null && !distributorParam.isEmpty()) {
-            distributorId = Integer.parseInt(distributorParam);
+            sale.setDistributorId(Integer.parseInt(distributorParam));
         } else if (product != null) {
-            distributorId = product.getDistributorId();
-        }
-        sale.setDistributorId(distributorId);
-
-        sale.setQuantity(Integer.parseInt(request.getParameter("txtQuantity")));
-        sale.setCustomerName(request.getParameter("txtCustomerName"));
-        sale.setMobileNumber(request.getParameter("txtMobileNumber"));
-        sale.setPaymentMethod(request.getParameter("selPaymentMethod"));
-
-        BigDecimal unitPrice = BigDecimalUtil.parseBigDecimal(request.getParameter("txtUnitPrice"));
-        if (unitPrice == null && product != null) {
-            unitPrice = product.getSellingPrice();
-        }
-//        sale.setUnitPrice(unitPrice);
-
-        String unit = request.getParameter("txtUnit");
-        if ((unit == null || unit.isEmpty()) && product != null) {
-            unit = product.getUnit();
-        }
-//        sale.setUnit(unit);
-
-        String unitsPerStripParam = request.getParameter("txtUnitPerStrip");
-        if ((unitsPerStripParam == null || unitsPerStripParam.isEmpty()) && product != null) {
-//            sale.setUnitsPerStrip(product.getUnitsPerStrip());
-        } else if (unitsPerStripParam != null && !unitsPerStripParam.isEmpty()) {
-//            sale.setUnitsPerStrip(Integer.parseInt(unitsPerStripParam));
+            // AUTOMATICALLY SET DISTRIBUTOR FROM PRODUCT
+            sale.setDistributorId(product.getDistributorId());
         } else {
-//            sale.setUnitsPerStrip(null);
+            throw new IllegalArgumentException("Distributor ID is required.");
         }
 
-        BigDecimal discountAmount = BigDecimalUtil.parseBigDecimal(request.getParameter("txtDiscountAmount"));
-        sale.setDiscountAmount(discountAmount == null ? BigDecimal.ZERO : discountAmount);
+        // VALIDATE AND SET QUANTITY
+        String quantityParam = request.getParameter("txtQuantity");
+        if (quantityParam == null || quantityParam.trim().isEmpty()) {
+            throw new IllegalArgumentException("Quantity is required");
+        }
+        int quantity = Integer.parseInt(quantityParam);
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+        sale.setQuantity(quantity);
 
-        BigDecimal amountGiven = BigDecimalUtil.parseBigDecimal(request.getParameter("txtAmountGiven"));
-        sale.setAmountGiven(amountGiven == null ? BigDecimal.ZERO : amountGiven);
+        // VALIDATE AND SET SUBQUANTITY (ONLY IF PRODUCT HAS SUBQUANTITY)
+        String subQtyParam = request.getParameter("txtSubQuantity");
+        if (subQtyParam != null && !subQtyParam.trim().isEmpty()) {
+            int subQty = Integer.parseInt(subQtyParam);
+            if (subQty < 0) {
+                throw new IllegalArgumentException("Sub-quantity cannot be negative");
+            }
+            // CHECK IF PRODUCT SUPPORTS SUBQUANTITY
+            if (product != null) {
+                sale.setSubQuantity(subQty);
+            } else if (subQty > 0) {
+                throw new IllegalArgumentException("This product does not have sub-quantity available");
+            }
+        }
 
-        BigDecimal total = sale.computeExpectedTotal();
-        BigDecimal given = sale.getAmountGiven() == null ? BigDecimal.ZERO : sale.getAmountGiven();
-        sale.setStatus(given.compareTo(total) >= 0 ? Sale.SaleStatus.completed : Sale.SaleStatus.pending);
+        // SET CUSTOMER (OPTIONAL)
+        String customerIdParam = request.getParameter("selCustomer");
+        if (customerIdParam != null && !customerIdParam.isEmpty()) {
+            sale.setCustomerId(Integer.parseInt(customerIdParam));
+        }
+
+        // SET PAYMENT METHOD
+        String paymentMethodStr = request.getParameter("selPaymentMethod");
+        if (paymentMethodStr != null && !paymentMethodStr.isEmpty()) {
+            sale.setPaymentMethod(PaymentMethod.valueOf(paymentMethodStr.toUpperCase()));
+        } else {
+            throw new IllegalArgumentException("Payment method is required");
+        }
+
+        // CALCULATE TOTAL AMOUNT WITH DISCOUNT AS PERCENTAGE
+        if (product != null) {
+            BigDecimal unitPrice = product.getSellingPrice();
+            BigDecimal quantityBD = new BigDecimal(sale.getQuantity());
+            BigDecimal subtotal = unitPrice.multiply(quantityBD);
+
+            // DISCOUNT IS IN PERCENTAGE (0-100)
+            String discountParam = request.getParameter("txtDiscount");
+            BigDecimal discountPercentage = BigDecimalUtil.parseBigDecimal(discountParam);
+            if (discountPercentage == null) {
+                discountPercentage = BigDecimal.ZERO;
+            }
+
+            // VALIDATE DISCOUNT PERCENTAGE
+            if (discountPercentage.compareTo(BigDecimal.ZERO) < 0 ||
+                    discountPercentage.compareTo(new BigDecimal("100")) > 0) {
+                throw new IllegalArgumentException("Discount must be between 0 and 100");
+            }
+
+            // CALCULATE DISCOUNT AMOUNT FROM PERCENTAGE
+            BigDecimal discountAmount = subtotal.multiply(discountPercentage)
+                    .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            sale.setDiscount(discountAmount);
+
+            // CALCULATE FINAL TOTAL AMOUNT
+            BigDecimal total = subtotal.subtract(discountAmount);
+            sale.setTotalAmount(total.setScale(2, java.math.RoundingMode.HALF_UP));
+        }
+
+        // SET AMOUNT GIVEN BY CUSTOMER
+        BigDecimal amountGiven = BigDecimalUtil.parseBigDecimal(request.getParameter("txtAmountGivenByCustomer"));
+        sale.setAmountGivenByCustomer(amountGiven == null ? BigDecimal.ZERO : amountGiven);
+
+        // SET STATUS MANUALLY FROM USER SELECTION
+        String statusParam = request.getParameter("selStatus");
+        if (statusParam != null && !statusParam.isEmpty()) {
+            sale.setStatus(SaleStatus.valueOf(statusParam.toLowerCase()));
+        } else {
+            throw new IllegalArgumentException("Payment status is required");
+        }
     }
 
     private void forwardToSaleJsp(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
-        request.setAttribute("productList", productDAO.getProductsPaginated(0, 1000, userId));
+        request.setAttribute("productList", productDAO.getProductsByUserId(userId));
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
-        request.setAttribute("saleList", saleDAO.getSalesPaginated(0, 5));
-        request.setAttribute("noOfPages", (int) Math.ceil(saleDAO.countSale() / 5.0));
-        request.setAttribute("currentPage", 1);
+        request.setAttribute("customerList", customerDAO.getCustomersByUserId(userId));
+
+        // LOAD SALES WITH PAGINATION FOR DISPLAY
+        int page = 1;
+        int recordsPerPage = 10;
+        List<Sale> saleList = saleDAO.getSalesByUserId(userId, page, recordsPerPage);
+        int totalRecords = saleDAO.getTotalSalesByUserId(userId);
+        int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
+        
+        request.setAttribute("saleList", saleList);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("noOfPages", totalPages);
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
         dispatcher.forward(request, response);
     }

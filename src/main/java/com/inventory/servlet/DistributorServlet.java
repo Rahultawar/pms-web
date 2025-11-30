@@ -139,16 +139,15 @@ public class DistributorServlet extends HttpServlet {
 		}
 	}
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-
-		// Get userId from session
-		Integer userId = (Integer) request.getSession().getAttribute("userId");
-		if (userId == null) {
-			response.sendRedirect("index.jsp");
-			return;
-		}
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get userId from session
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        if (userId == null) {
+            response.sendRedirect("index.jsp");
+            return;
+        }
 
 		String idParam = request.getParameter("editId");
 		String deleteIdParam = request.getParameter("deleteId");

@@ -35,7 +35,8 @@ public class CustomerDAO {
                 customerList.add(customer);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching customers: " + e.getMessage(), e);
         }
         return customerList;
     }
@@ -53,7 +54,8 @@ public class CustomerDAO {
 
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error adding customer: " + e.getMessage(), e);
         }
     }
 
@@ -66,7 +68,8 @@ public class CustomerDAO {
             statement.setInt(2, userId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error deleting customer: " + e.getMessage(), e);
         }
     }
 
@@ -85,7 +88,8 @@ public class CustomerDAO {
 
             result = statement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error updating customer: " + e.getMessage(), e);
         }
         return result;
     }
@@ -110,10 +114,40 @@ public class CustomerDAO {
                 customer.setCreatedAt(resultSet.getTimestamp("createdAt"));
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching customer: " + e.getMessage(), e);
         }
         return customer;
     }
+
+    public List<Customer> getCustomersByUserId(int userId) {
+    List<Customer> customerList = new ArrayList<>();
+    String query = "SELECT * FROM customer WHERE userId = ? ORDER BY customerName ASC";
+    
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+        
+        statement.setInt(1, userId);
+        
+        try (ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(resultSet.getInt("customerId"));
+                customer.setCustomerName(resultSet.getString("customerName"));
+                customer.setUserId(resultSet.getInt("userId"));
+                customer.setContactNumber(resultSet.getString("contactNumber"));
+                customer.setCreatedAt(resultSet.getTimestamp("createdAt"));
+                
+                customerList.add(customer);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw new RuntimeException("Error fetching customers by userId: " + e.getMessage(), e);
+    }
+    
+    return customerList;
+}
 
     // COUNT CUSTOMERS
     public int countCustomers(int userId) {
