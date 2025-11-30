@@ -1,7 +1,9 @@
-
 package com.inventory.servlet;
+
+import com.inventory.dao.CustomerDAO;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.ProductDAO;
+import com.inventory.models.Customer;
 import com.inventory.models.Distributor;
 import com.inventory.models.Product;
 import com.inventory.utils.BigDecimalUtil;
@@ -15,9 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,12 +32,13 @@ import java.util.List;
 public class ImportExportServlet extends HttpServlet {
     private ProductDAO productDAO = new ProductDAO();
     private DistributorDAO distributorDAO = new DistributorDAO();
+    private CustomerDAO customerDAO = new CustomerDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
@@ -51,6 +52,8 @@ public class ImportExportServlet extends HttpServlet {
                 downloadProductTemplate(response, userId);
             } else if ("distributors".equals(type)) {
                 downloadDistributorTemplate(response, userId);
+            } else if ("customers".equals(type)) {
+                downloadCustomerTemplate(response, userId);
             }
         } else {
             // FETCH NOTIFICATION COUNTS FOR SIDEBAR
@@ -68,7 +71,7 @@ public class ImportExportServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
@@ -97,14 +100,16 @@ public class ImportExportServlet extends HttpServlet {
                         result = importProducts(filePart.getInputStream(), userId);
                     } else if ("distributors".equals(importType)) {
                         result = importDistributors(filePart.getInputStream(), userId);
+                    } else if ("customers".equals(importType)) {
+                        result = importCustomers(filePart.getInputStream(), userId);
                     } else {
                         result = "Invalid import type.";
                     }
 
-                    // Check if there were any successful imports
+                    // CHECK IF THERE WERE ANY SUCCESSFUL IMPORTS
                     int successCount = 0;
-                    if ("products".equals(importType) || "distributors".equals(importType)) {
-                        // Extract success count from result message
+                    if ("products".equals(importType) || "distributors".equals(importType) || "customers".equals(importType)) {
+                        // EXTRACT SUCCESS COUNT FROM RESULT MESSAGE
                         try {
                             String countStr = result.split(" ")[0];
                             successCount = Integer.parseInt(countStr);
@@ -139,7 +144,7 @@ public class ImportExportServlet extends HttpServlet {
         PrintWriter writer = response.getWriter();
         writer.println("productName,category,manufacturer,batchNumber,strength,location,distributorId,manufacturingDate,expiryDate,quantity,subQuantity,reorderLevel,purchasingPrice,sellingPrice,unit");
 
-        // Add multiple sample rows with clear examples
+        // ADD MULTIPLE SAMPLE ROWS WITH CLEAR EXAMPLES
         writer.println("Paracetamol 500mg,Analgesic,ABC Pharmaceuticals,BATCH2025001,500mg,Rack A1,ABC Pharma Distributors,2025-01-15,2027-01-15,150,,20,25.50,35.75,strip");
         writer.println("Amoxicillin 250mg,Antibiotic,XYZ Labs,BATCH2025002,250mg,Rack B2,HealthCare Supplies,2025-02-01,2026-02-01,75,5,15,12.25,18.99,bottle");
         writer.println("Ibuprofen 200mg,Pain Relief,CareMed Corp,BATCH2025003,200mg,Rack C3,Medical Distributors Inc,2025-03-10,2027-03-10,200,20,25,8.75,12.50,strip");
@@ -154,10 +159,25 @@ public class ImportExportServlet extends HttpServlet {
         PrintWriter writer = response.getWriter();
         writer.println("distributorName,contactPerson,email,phone,address,city,state,pinCode");
 
-        // Add multiple sample rows with clear examples
+        // ADD MULTIPLE SAMPLE ROWS WITH CLEAR EXAMPLES
         writer.println("ABC Pharma Distributors,Sarah Johnson,sarah@abcpharma.com,9876543210,\"456 Business Park, Sector 5\",Mumbai,Maharashtra,400001");
         writer.println("HealthCare Supplies,Mike Chen,mike@healthcaresupplies.com,8765432109,\"789 Medical Plaza, Block A\",Delhi,Delhi,110001");
         writer.println("Medical Distributors Inc,Emma Wilson,emma@medicadist.com,7654321098,\"321 Pharma Street, Suite 100\",Bangalore,Karnataka,560001");
+
+        writer.flush();
+    }
+
+    private void downloadCustomerTemplate(HttpServletResponse response, int userId) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"customers_template.csv\"");
+
+        PrintWriter writer = response.getWriter();
+        writer.println("customerName,contactNumber,userId");
+
+        // ADD MULTIPLE SAMPLE ROWS WITH CLEAR EXAMPLES
+        writer.println("John Smith,9876543210," + userId);
+        writer.println("Sarah Johnson,8765432109," + userId);
+        writer.println("Mike Wilson,7654321098," + userId);
 
         writer.flush();
     }
@@ -193,12 +213,12 @@ public class ImportExportServlet extends HttpServlet {
                     product.setStrength(fields[4].trim());
                     product.setLocation(fields[5].trim());
 
-                    // For distributorId, we might need to handle by name instead of ID
-                    // For simplicity, assume ID is provided in CSV
+                    // FOR DISTRIBUTORID, WE MIGHT NEED TO HANDLE BY NAME INSTEAD OF ID
+                    // FOR SIMPLICITY, ASSUME ID IS PROVIDED IN CSV
                     try {
                         product.setDistributorId(Integer.parseInt(fields[6].trim()));
                     } catch (NumberFormatException e) {
-                        // Try to find distributor by name
+                        // TRY TO FIND DISTRIBUTOR BY NAME
                         List<Distributor> distributors = distributorDAO.getAllDistributor(userId);
                         boolean found = false;
                         for (Distributor d : distributors) {
@@ -294,8 +314,52 @@ public class ImportExportServlet extends HttpServlet {
         return result;
     }
 
+    private String importCustomers(java.io.InputStream inputStream, int userId) throws IOException {
+        List<String> errors = new ArrayList<>();
+        int successCount = 0;
+
+        try (java.util.Scanner scanner = new java.util.Scanner(inputStream)) {
+            boolean isFirstLine = true;
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty()) continue;
+
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    if (line.startsWith("customerName")) continue; // Skip header
+                }
+
+                String[] fields = parseCSVLine(line);
+                if (fields.length < 3) {
+                    errors.add("Invalid row format: " + line + " - Expected at least 3 fields (customerName, contactNumber, userId)");
+                    continue;
+                }
+
+                try {
+                    Customer customer = new Customer();
+                    customer.setCustomerName(fields[0].trim());
+                    customer.setContactNumber(fields[1].trim());
+                    customer.setUserId(Integer.parseInt(fields[2].trim()));
+
+                    customerDAO.addCustomer(customer);
+                    successCount++;
+
+                } catch (Exception e) {
+                    errors.add(generateUserFriendlyMessage(e, line, "customer"));
+                }
+            }
+        }
+
+        String result = successCount + " customers imported successfully.";
+        if (!errors.isEmpty()) {
+            result += " Errors: " + String.join("; ", errors);
+        }
+        return result;
+    }
+
     private String[] parseCSVLine(String line) {
-        // Simple CSV parsing - handles quoted fields
+        // SIMPLE CSV PARSING - HANDLES QUOTED FIELDS
         List<String> fields = new ArrayList<>();
         boolean inQuotes = false;
         StringBuilder currentField = new StringBuilder();
@@ -336,11 +400,11 @@ public class ImportExportServlet extends HttpServlet {
             try {
                 format.setLenient(false);
                 java.util.Date date = format.parse(dateStr);
-                // Convert back to standard format for Date.valueOf
+                // CONVERT BACK TO STANDARD FORMAT FOR DATE.VALUEOF
                 SimpleDateFormat standard = new SimpleDateFormat("yyyy-MM-dd");
                 return standard.format(date);
             } catch (ParseException e) {
-                // Try next format
+                // TRY NEXT FORMAT
             }
         }
 
@@ -353,11 +417,11 @@ public class ImportExportServlet extends HttpServlet {
             message = e.toString();
         }
 
-        // Handle specific exception types
+        // HANDLE SPECIFIC EXCEPTION TYPES
         if (message.contains("Duplicate entry") && message.contains("for key")) {
-            // Extract the field and value that caused the duplicate
+            // EXTRACT THE FIELD AND VALUE THAT CAUSED THE DUPLICATE
             try {
-                // Message format: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry 'Gamma Enterprise' for key 'ux_distributor_name'
+                // MESSAGE FORMAT: JAVA.SQL.SQLINTEGRITYCONSTRAINTVIOLATIONEXCEPTION: DUPLICATE ENTRY 'GAMMA ENTERPRISE' FOR KEY 'UX_DISTRIBUTOR_NAME'
                 int startQuote = message.indexOf("'") + 1;
                 int endQuote = message.indexOf("'", startQuote);
                 String duplicateValue = message.substring(startQuote, endQuote);
@@ -366,11 +430,13 @@ public class ImportExportServlet extends HttpServlet {
                 int keyEnd = message.indexOf("'", keyStart);
                 String keyName = message.substring(keyStart, keyEnd);
 
-                // Map key names to readable field names
+                // MAP KEY NAMES TO READABLE FIELD NAMES
                 String fieldName = "unknown field";
                 if (keyName.contains("name")) {
                     if (type.equals("distributor")) {
                         fieldName = "distributor name";
+                    } else if (type.equals("customer")) {
+                        fieldName = "customer name";
                     } else {
                         fieldName = "product name";
                     }
@@ -380,6 +446,8 @@ public class ImportExportServlet extends HttpServlet {
                     fieldName = "email";
                 } else if (keyName.contains("phone")) {
                     fieldName = "phone";
+                } else if (keyName.contains("contact")) {
+                    fieldName = "contact number";
                 }
 
                 return "Duplicate " + fieldName + " '" + duplicateValue + "' already exists for this " + type;
@@ -399,7 +467,7 @@ public class ImportExportServlet extends HttpServlet {
         } else if (e instanceof IllegalArgumentException) {
             return "Invalid data in row: " + line + " - " + message;
         } else {
-            // Generic fallback
+            // GENERIC FALLBACK
             return "Error processing row '" + line + "': " + message;
         }
     }

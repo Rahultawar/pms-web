@@ -3,7 +3,6 @@ package com.inventory.servlet;
 import com.inventory.dao.ProductDAO;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.SaleDAO;
-import com.inventory.dao.UserDAO;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -21,23 +20,28 @@ public class DashboardServlet extends HttpServlet {
             throws ServletException, IOException {
         // SESSION VALIDATION
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("username") == null) {
+        if (session == null || session.getAttribute("user") == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
-        // OBJECTS OF DAOs
-        ProductDAO productDAO = new ProductDAO();
-        DistributorDAO distributorDAO = new DistributorDAO();
-        UserDAO userDAO = new UserDAO();
-        SaleDAO saleDAO = new SaleDAO();
+        try {
+            // OBJECTS OF DAOs
+            ProductDAO productDAO = new ProductDAO();
+            DistributorDAO distributorDAO = new DistributorDAO();
+            SaleDAO saleDAO = new SaleDAO();
 
-        int userId = (Integer) session.getAttribute("userId");
+            Integer userId = (Integer) session.getAttribute("userId");
+            if (userId == null) {
+                response.sendRedirect("index.jsp");
+                return;
+            }
 
-        // FETCH COUNTS
-        int saleCount = saleDAO.countSale();
-        int productCount = productDAO.countProduct(userId);
-        int distributorCount = distributorDAO.countDistributor(userId);
+            // FETCH COUNTS AND AMOUNTS
+            double todaySaleAmount = saleDAO.getTodaySalesAmount(userId);
+            double monthlySaleAmount = saleDAO.getMonthlySalesAmount(userId);
+            int productCount = productDAO.countProduct(userId);
+            int distributorCount = distributorDAO.countDistributor(userId);
 
         // FETCH NOTIFICATION COUNTS
         int lowStockCount = productDAO.getLowStockProducts(userId).size();
@@ -49,8 +53,13 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("saleCount", saleCount);
         request.setAttribute("totalNotifications", totalNotifications);
 
-        RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
-        dispatcher.forward(request, response);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
+            dispatcher.forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading dashboard: " + e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+        }
     }
 
     @Override

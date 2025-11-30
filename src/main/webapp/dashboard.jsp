@@ -31,8 +31,8 @@
             <link rel="stylesheet" href="${styleUrl}" />
             <c:url var="enhancedStyleUrl" value="/assets/css/enhanced-ui.css" />
             <link rel="stylesheet" href="${enhancedStyleUrl}" />
-            <c:url var="noAnimationsUrl" value="/assets/css/no-animations.css"/>
-            <link rel="stylesheet" href="${noAnimationsUrl}"/>
+            <c:url var="noAnimationsUrl" value="/assets/css/no-animations.css" />
+            <link rel="stylesheet" href="${noAnimationsUrl}" />
             <c:url var="iconUrl" value="/assets/images/logo-modern.svg" />
             <c:url var="faviconUrl" value="/assets/images/favicon.svg" />
             <link rel="icon" href="${faviconUrl}" type="image/svg+xml">
@@ -41,8 +41,7 @@
 
         </head>
 
-<body data-page="dashboard">
-
+        <body data-page="dashboard">
             <div class="app-shell">
                 <!-- SIDEBAR -->
                 <jsp:include page="sidebar.jsp">
@@ -61,24 +60,24 @@
                         </nav>
 
                         <div class="row">
-                            <!-- TOTAL SALE CARD -->
+                            <!-- TODAY SALE CARD -->
                             <div class="col-md-3 mb-4">
                                 <div class="stat-card stat-card-blue">
                                     <div class="stat-icon-wrapper">
-                                        <i class="fas fa-dollar-sign stat-icon"></i>
+                                        <i class="fas fa-calendar-day stat-icon"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <h6 class="stat-label">Total Sales</h6>
-                                        <h2 class="stat-value" id="totalSaleCount">0</h2>
+                                        <h6 class="stat-label">Today Sale</h6>
+                                        <h2 class="stat-value"><span id="todaySaleAmount">0</span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-success">
-                                                <i class="fas fa-arrow-up"></i> 5% from last week
+                                                <i class="fas fa-calendar-check"></i> Today's transactions
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- /TOTAL SALE CARD -->
+                            <!-- /TODAY SALE CARD -->
 
                             <!-- TOTAL PRODUCTS CARD -->
                             <div class="col-md-3 mb-4">
@@ -117,18 +116,18 @@
                             </div>
                             <!-- /TOTAL DISTRIBUTOR CARD-->
 
-                            <!-- TOTAL REVENUE CARD -->
+                            <!-- TOTAL SALE (MONTHLY) CARD -->
                             <div class="col-md-3 mb-4">
                                 <div class="stat-card stat-card-red">
                                     <div class="stat-icon-wrapper">
                                         <i class="fas fa-chart-line stat-icon"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <h6 class="stat-label">Total Revenue</h6>
-                                        <h2 class="stat-value" id="totalRevenue">₹0</h2>
+                                        <h6 class="stat-label">Total Sale</h6>
+                                        <h2 class="stat-value"><span id="monthlySaleAmount">0</span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-danger">
-                                                <i class="fas fa-coins"></i> This month
+                                                <i class="fas fa-calendar-alt"></i> This month
                                             </span>
                                         </div>
                                     </div>
@@ -195,13 +194,14 @@
 
                 <script src="${appJs}"></script>
                 <script>
-                    // Initialize Charts
+                    // INIT DASHBOARD CHARTS
                     document.addEventListener('DOMContentLoaded', function () {
-                        const saleCountVal = Number('${saleCount}') || 0;
+                        const todaySaleAmountVal = Number('${todaySaleAmount}') || 0;
+                        const monthlySaleAmountVal = Number('${monthlySaleAmount}') || 0;
                         const productCountVal = Number('${productCount}') || 0;
                         const distributorCountVal = Number('${distributorCount}') || 0;
                         const hasChartJs = typeof Chart !== 'undefined';
-                        // Sales Chart
+                        // SALES CHART
                         const salesCtx = document.getElementById('salesChart');
                         if (hasChartJs && salesCtx) {
                             new Chart(salesCtx, {
@@ -234,7 +234,7 @@
                             });
                         }
 
-                        // Product Chart
+                        // PRODUCT CHART
                         const productCtx = document.getElementById('productChart');
                         if (hasChartJs && productCtx) {
                             new Chart(productCtx, {
@@ -264,11 +264,11 @@
                             });
                         }
 
-                        // Animate counters
-                        animateValue('totalRevenue', 0, 45670, 2000);
-                        animateValue('totalSaleCount', 0, saleCountVal, 2000);
-                        animateValue('countProduct', 0, productCountVal, 2000);
-                        animateValue('countDistributor', 0, distributorCountVal, 2000);
+                        // ANIMATE COUNTERS
+                        animateValue('todaySaleAmount', 0, todaySaleAmountVal, 800);
+                        animateValue('monthlySaleAmount', 0, monthlySaleAmountVal, 1000);
+                        animateValue('countProduct', 0, productCountVal, 1200);
+                        animateValue('countDistributor', 0, distributorCountVal, 1200);
 
                     });
 
