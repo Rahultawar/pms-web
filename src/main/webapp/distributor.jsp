@@ -50,43 +50,16 @@
 
 	<div class="app-shell">
 		<!-- SIDEBAR -->
-		<aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
-			<b> <a href="DashboardServlet"
-				class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-					<img src="${iconUrl}" alt="Logo" width="40" height="40"
-					style="border-radius: 8px;"> <span class="fs-6 ms-2">${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}</span>
-			</a>
-			</b>
-			<hr>
-			<ul class="nav nav-pills flex-column mb-auto">
-				<li class="nav-item"><a href="DashboardServlet"
-					class="nav-link"> <i class="fas fa-tachometer-alt me-2"></i>
-						Dashboard
-				</a></li>
-				<li><a href="ProductServlet" class="nav-link"> <i
-						class="fas fa-pills me-2"></i> Product
-				</a></li>
-				<li><a href="DistributorServlet" class="nav-link active"
-					aria-current="page"><i class="fas fa-truck me-2"></i>Distributor
-				</a></li>
-				<li><a href="SaleServlet" class="nav-link"> <i
-						class="fas fa-file-invoice-dollar me-2"></i> Sales
-				</a></li>
-				<li><a href="#" class="nav-link"> <i
-						class="fas fa-user me-2"></i> Profile
-				</a></li>
-				<li><a href="${logoutUrl}" class="nav-link"> <i
-						class="fas fa-sign-out-alt me-2"></i> Logout
-				</a></li>
-			</ul>
-		</aside>
+		<jsp:include page="sidebar.jsp">
+			<jsp:param name="activePage" value="distributor" />
+		</jsp:include>
 		<!-- /SIDEBAR -->
 
 		<!-- MAIN CONTENT -->
 		<main id="content-wrapper" class="flex-fill">
 			<div class="container-fluid">
 				<div class="row align-items-center mb-3">
-					<div class="col-md-8 col-12 mb-2 mb-md-0">
+					<div class="col-md-6 col-12 mb-2 mb-md-0">
 						<nav aria-label="breadcrumb">
 							<ol class="breadcrumb mb-0" id="breadcrumbItem">
 								<li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
@@ -94,6 +67,7 @@
 							</ol>
 						</nav>
 					</div>
+
 
 					<!-- ERROR MESSAGE -->
 					<c:if test="${not empty requestScope['success-message']}">
@@ -105,19 +79,18 @@
 						</div>
 					</c:if>
 
-					<div class="col-md-4 col-12 text-md-end">
+					<div class="col-md-3 col-12 mb-2 mb-md-0" id="searchContainer">
+						<div class="input-group">
+							<input type="search" class="form-control" id="searchBox"
+								placeholder="Search distributors..."> <span
+								class="input-group-text"><i class="fas fa-search"></i></span>
+						</div>
+					</div>
+					<div class="col-md-3 col-12 text-end">
 						<button class="btn btn-outline-success" id="addDistributor"
 							data-action="show-form" data-mode="add">
 							<i class="fas fa-truck me-2"></i>Add Distributor
 						</button>
-					</div>
-				</div>
-
-				<!--  SEARCH BAR -->
-				<div class="row mb-3">
-					<div class="col-md-4 ms-auto">
-						<input type="text" id="searchDistributor" class="form-control"
-							placeholder="Search distributor...">
 					</div>
 				</div>
 
@@ -373,7 +346,7 @@
 	});
 
 	</script>
-		
+
 	<script src="${bootstrapJs}"></script>
 </body>
 

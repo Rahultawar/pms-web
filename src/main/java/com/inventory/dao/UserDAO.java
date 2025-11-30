@@ -164,4 +164,23 @@ public class UserDAO {
         }
         return 0;
     }
+    
+    // UPDATE USER PROFILE
+    public boolean updateUser(User user) {
+        String query = "UPDATE user SET medicalStoreName = ?, medicalStoreLogo = ?, password = ? WHERE userId = ?";
+        
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            
+            statement.setString(1, user.getMedicalStoreName());
+            statement.setString(2, user.getMedicalStoreLogo());
+            statement.setString(3, user.getPassword());
+            statement.setInt(4, user.getUserId());
+            
+            return statement.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating user: " + e.getMessage(), e);
+        }
+    }
 }
