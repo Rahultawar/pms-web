@@ -1,9 +1,9 @@
 package com.inventory.servlet;
 
 import com.inventory.dao.ProductDAO;
+import com.google.gson.Gson;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.SaleDAO;
-import com.google.gson.Gson;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -48,6 +48,11 @@ public class DashboardServlet extends HttpServlet {
             int productCount = productDAO.countProduct(userId);
             int distributorCount = distributorDAO.countDistributor(userId);
 
+            // FETCH NOTIFICATION COUNTS
+            int lowStockCount = productDAO.getLowStockProducts(userId).size();
+            int expiringCount = productDAO.getExpiringProducts(userId).size();
+            int totalNotifications = lowStockCount + expiringCount;
+
             // GET SALES TREND DATA (DEFAULT TO DAILY)
             String trendType = request.getParameter("trend");
             if (trendType == null || trendType.isEmpty()) {
@@ -91,6 +96,7 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("categoryData", categoryDataJson);
             request.setAttribute("paymentMethodData", paymentMethodJson);
             request.setAttribute("trendType", trendType);
+            request.setAttribute("totalNotifications", totalNotifications);
 
             RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
             dispatcher.forward(request, response);

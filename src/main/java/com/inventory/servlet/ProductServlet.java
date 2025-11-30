@@ -207,6 +207,13 @@ public class ProductServlet extends HttpServlet {
 
         // PROVIDE DISTRIBUTOR LIST FOR SELECT DROPDOWN
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
+
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
         dispatcher.forward(request, response);
     }

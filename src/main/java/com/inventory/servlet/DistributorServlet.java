@@ -149,47 +149,50 @@ public class DistributorServlet extends HttpServlet {
             return;
         }
 
-		String idParam = request.getParameter("editId");
-		String deleteIdParam = request.getParameter("deleteId");
+        String idParam = request.getParameter("editId");
+        String deleteIdParam = request.getParameter("deleteId");
 
-		// IF EDITING A DISTRIBUTOR
-		if (idParam != null && !idParam.isEmpty()) {
-			int distId = Integer.parseInt(idParam);
-			Distributor distributor = distributorDAO.getDistributorById(distId, userId);
-			request.setAttribute("distributorDetails", distributor);
-		}
-		
-		if (request.getParameter("status") != null && request.getParameter("status").equals("success")) {
-		    request.setAttribute("success-message", "Distributor added successfully!");
-		}
+        // IF EDITING A DISTRIBUTOR
+        if (idParam != null && !idParam.isEmpty()) {
+            int distId = Integer.parseInt(idParam);
+            Distributor distributor = distributorDAO.getDistributorById(distId, userId);
+            request.setAttribute("distributorDetails", distributor);
+        }
 
-		// IF DELETING A DISTRIBUTOR
-		if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
-			int deleteId = Integer.parseInt(deleteIdParam);
-			distributorDAO.deleteDistributor(deleteId, userId);
-		}
+        // IF DELETING A DISTRIBUTOR
+        if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
+            int deleteId = Integer.parseInt(deleteIdParam);
+            distributorDAO.deleteDistributor(deleteId, userId);
+        }
 
-		// PAGINATION LOGIC
-		int recordsPerPage = 5;
-		int page = 1;
-		if (request.getParameter("page") != null) {
-			try {
-				page = Integer.parseInt(request.getParameter("page"));
-			} catch (NumberFormatException e) {
-				page = 1;
-			}
-		}
+        // PAGINATION LOGIC
+        int recordsPerPage = 5;
+        int page = 1;
+        if (request.getParameter("page") != null) {
+            try {
+                page = Integer.parseInt(request.getParameter("page"));
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
 
-		List<Distributor> distributorList = distributorDAO.getDistributorsPaginated((page - 1) * recordsPerPage,
-				recordsPerPage, userId);
-		int totalRecords = distributorDAO.countDistributor(userId);
-		int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
+        List<Distributor> distributorList = distributorDAO.getDistributorsPaginated((page - 1) * recordsPerPage,
+                recordsPerPage, userId);
+        int totalRecords = distributorDAO.countDistributor(userId);
+        int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
 
-		request.setAttribute("distributorList", distributorList);
-		request.setAttribute("noOfPages", totalPages);
-		request.setAttribute("currentPage", page);
+        request.setAttribute("distributorList", distributorList);
+        request.setAttribute("noOfPages", totalPages);
+        request.setAttribute("currentPage", page);
 
-		RequestDispatcher dispatcher = request.getRequestDispatcher("distributor.jsp");
-		dispatcher.forward(request, response);
-	}
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        com.inventory.dao.ProductDAO productDAO = new com.inventory.dao.ProductDAO();
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
+
+        RequestDispatcher dispatcher = request.getRequestDispatcher("distributor.jsp");
+        dispatcher.forward(request, response);
+    }
 }

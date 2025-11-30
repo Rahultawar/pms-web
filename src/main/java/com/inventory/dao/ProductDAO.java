@@ -315,20 +315,60 @@ public class ProductDAO {
         }
     }
 
-    public boolean deductProductSubQuantity(int productId, int subQuantityToDeduct) {
-        String query = "UPDATE product SET subQuantity = subQuantity - ? WHERE productId = ? AND subQuantity >= ?";
+    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER VERIFICATION
+    public List<Product> getLowStockProducts(int userId) {
+        List<Product> lowStockProducts = new ArrayList<>();
+
+        String query = "SELECT * FROM product WHERE userId = ? AND quantity <= reorderLevel AND reorderLevel > 0";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
 
-            statement.setInt(1, subQuantityToDeduct);
-            statement.setInt(2, productId);
-            statement.setInt(3, subQuantityToDeduct);
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
 
-            int rowsAffected = statement.executeUpdate();
-            return rowsAffected > 0;
+            while (resultSet.next()) {
+                Product product = new Product();
+                product.setProductId(resultSet.getInt("productId"));
+                product.setProductName(resultSet.getString("productName"));
+                product.setQuantity(resultSet.getInt("quantity"));
+                product.setReorderLevel(resultSet.getInt("reorderLevel"));
+                product.setCategory(resultSet.getString("category"));
+                product.setBatchNumber(resultSet.getString("batchNumber"));
+
+                lowStockProducts.add(product);
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error deducting product subQuantity: " + e.getMessage(), e);
+            throw new RuntimeException("Error fetching low stock products: " + e.getMessage(), e);
         }
+        return lowStockProducts;
+    }
+
+    // GET PRODUCTS WITH EXPIRY DATE NEAR (WITHIN 30 DAYS) - WITH USER VERIFICATION
+    public List<Product> getExpiringProducts(int userId) {
+        List<Product> expiringProducts = new ArrayList<>();
+
+        String query = "SELECT * FROM product WHERE userId = ? AND expiryDate IS NOT NULL AND expiryDate <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND expiryDate >= CURDATE()";
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Product product = new Product();
+                product.setProductId(resultSet.getInt("productId"));
+                product.setProductName(resultSet.getString("productName"));
+                product.setExpiryDate(resultSet.getDate("expiryDate"));
+                product.setQuantity(resultSet.getInt("quantity"));
+                product.setCategory(resultSet.getString("category"));
+                product.setBatchNumber(resultSet.getString("batchNumber"));
+
+                expiringProducts.add(product);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching expiring products: " + e.getMessage(), e);
+        }
+        return expiringProducts;
     }
 
     // GET PRODUCT CATEGORY DISTRIBUTION
