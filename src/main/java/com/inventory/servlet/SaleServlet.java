@@ -80,7 +80,12 @@ public class SaleServlet extends HttpServlet {
                 if (sale != null && sale.getUserId().equals(userId)) {
                     boolean deleted = saleDAO.deleteSale(saleId);
                     if (deleted) {
-                        response.sendRedirect("SaleServlet?msg=Sale deleted successfully");
+                        String currentPage = request.getParameter("page");
+                        if (currentPage != null && !currentPage.isEmpty()) {
+                            response.sendRedirect("SaleServlet?msg=Sale deleted successfully&page=" + currentPage);
+                        } else {
+                            response.sendRedirect("SaleServlet?msg=Sale deleted successfully");
+                        }
                         return;
                     } else {
                         request.setAttribute("errorMessage", "Failed to delete sale.");
@@ -181,7 +186,12 @@ public class SaleServlet extends HttpServlet {
             }
 
             saleDAO.addSale(sale);
-            response.sendRedirect("SaleServlet?msg=Sale added successfully");
+            String currentPage = request.getParameter("currentPage");
+            if (currentPage != null && !currentPage.isEmpty()) {
+                response.sendRedirect("SaleServlet?msg=Sale added successfully&page=" + currentPage);
+            } else {
+                response.sendRedirect("SaleServlet?msg=Sale added successfully");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", e.getMessage());
@@ -226,7 +236,12 @@ public class SaleServlet extends HttpServlet {
             // UPDATE THE SALE
             Sale updatedSale = saleDAO.updateSale(sale);
             if (updatedSale != null) {
-                response.sendRedirect("SaleServlet?msg=Sale updated successfully");
+                String currentPage = request.getParameter("currentPage");
+                if (currentPage != null && !currentPage.isEmpty()) {
+                    response.sendRedirect("SaleServlet?msg=Sale updated successfully&page=" + currentPage);
+                } else {
+                    response.sendRedirect("SaleServlet?msg=Sale updated successfully");
+                }
             } else {
                 request.setAttribute("saleDetails", sale);
                 request.setAttribute("errorMessage", "Failed to update sale.");
