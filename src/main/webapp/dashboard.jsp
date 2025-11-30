@@ -1,4 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
     <%@ page isELIgnored="false" %>
 
         <c:if test="${empty sessionScope.username}">
@@ -177,8 +179,8 @@
                                                 </a>
                                             </div>
                                             <div class="col-md-3 mb-2">
-                                                <a href="ProductServlet" class="btn btn-outline-success w-100">
-                                                    <i class="fas fa-box-open me-2"></i>View Inventory
+                                                <a href="NotificationServlet" class="btn btn-outline-warning w-100">
+                                                    <i class="fas fa-bell me-2"></i>View Notifications
                                                 </a>
                                             </div>
                                         </div>

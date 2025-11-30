@@ -1,5 +1,24 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<!-- Calculate unread notification count -->
+<%
+Integer originalNotificationCount = (Integer) request.getAttribute("totalNotifications");
+if (session.getAttribute("userId") != null) {
+    Integer userIdObj = (Integer) session.getAttribute("userId");
+    int userId = userIdObj.intValue(); // Convert Integer to int
+    try {
+        com.inventory.dao.UserNotificationDAO userNotificationDAO = new com.inventory.dao.UserNotificationDAO();
+        int unreadCount = userNotificationDAO.getUnreadNotificationCount(userId);
+        request.setAttribute("totalNotifications", unreadCount);
+    } catch (Exception e) {
+        // Fallback to original count if calculation fails
+        if (originalNotificationCount != null) {
+            request.setAttribute("totalNotifications", originalNotificationCount);
+        }
+    }
+}
+%>
+
 <!-- SIDEBAR -->
 <c:url var="defaultLogoUrl" value="/assets/images/logo-modern.svg" />
 <c:url var="logoutUrl" value="/LogoutServlet" />
@@ -27,6 +46,7 @@
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
         </li>
+        
         <li>
             <a href="ProductServlet"
                class="nav-link ${param.activePage == 'product' ? 'active' : ''}"
@@ -55,6 +75,7 @@
                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
             </a>
         </li>
+        
         <li>
             <a href="ImportExportServlet"
                class="nav-link ${param.activePage == 'import-export' ? 'active' : ''}"
@@ -63,9 +84,15 @@
             </a>
         </li>
         <li>
-            <a href="#"
-               class="nav-link ${param.activePage == 'profile' ? 'active' : ''}"
-               aria-current="${param.activePage == 'profile' ? 'page' : ''}">
+            <a href="NotificationServlet" class="nav-link ${param.activePage == 'notifications' ? 'active' : ''}" aria-current="${param.activePage == 'notifications' ? 'page' : ''}">
+                <i class="fas fa-bell me-2"></i> Notifications
+                <c:if test="${totalNotifications > 0}">
+                    <span class="badge bg-danger ms-1">${totalNotifications}</span>
+                </c:if>
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
         </li>

@@ -123,14 +123,14 @@ public class SaleServlet extends HttpServlet {
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("noOfPages", totalPages);
 
-            // FORWARD TO SALE.JSP
-            request.getRequestDispatcher("sale.jsp").forward(request, response);
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("errorMessage", "Error loading sale page: " + e.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
-        }
+        RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
+        dispatcher.forward(request, response);
     }
 
     private void handleAddSale(HttpServletRequest request, HttpServletResponse response)

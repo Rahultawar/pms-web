@@ -43,10 +43,15 @@ public class DashboardServlet extends HttpServlet {
             int productCount = productDAO.countProduct(userId);
             int distributorCount = distributorDAO.countDistributor(userId);
 
-            request.setAttribute("productCount", productCount);
-            request.setAttribute("distributorCount", distributorCount);
-            request.setAttribute("todaySaleAmount", todaySaleAmount);
-            request.setAttribute("monthlySaleAmount", monthlySaleAmount);
+        // FETCH NOTIFICATION COUNTS
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+
+        request.setAttribute("productCount", productCount);
+        request.setAttribute("distributorCount", distributorCount);
+        request.setAttribute("saleCount", saleCount);
+        request.setAttribute("totalNotifications", totalNotifications);
 
             RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
             dispatcher.forward(request, response);
