@@ -15,3 +15,8 @@
 # XAMPP / Windows
 Thumbs.db
 desktop.ini
+.classpath
+.project
+.settings/
+
+webapp/assets/images/logos/*

@@ -112,7 +112,7 @@ public class DistributorServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
