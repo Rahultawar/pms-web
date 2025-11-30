@@ -61,7 +61,7 @@
 					</div>
 				</div>
 
-				<!-- Error/Success Messages -->
+				<!-- ERROR/SUCCESS MESSAGE -->
 				<c:if test="${not empty requestScope.errorMessage}">
 					<div class="alert alert-danger alert-dismissible fade show mb-4"
 						role="alert">
@@ -80,7 +80,7 @@
 					</div>
 				</c:if>
 
-				<!-- Profile View -->
+				<!-- PROFILE VIEW -->
 				<div id="profileView" class="card">
 					<div
 						class="card-header d-flex justify-content-between align-items-center">
@@ -121,7 +121,7 @@
 					</div>
 				</div>
 
-				<!-- Profile Edit Form -->
+				<!-- PROFILE EDIT FORM -->
 				<div id="profileForm" class="card form-card">
 					<h5 class="card-title mb-3" id="formTitle">Edit Profile</h5>
 					<form action="ProfileServlet" method="post"
@@ -143,7 +143,8 @@
 										name="txtMedicalStoreName" placeholder="Medical Store Name"
 										value="${requestScope.userProfile.medicalStoreName}" required>
 									<label for="medicalStoreName">Medical Store Name</label>
-									<div class="medicalStoreName-error text-danger"></div>
+									<div class="invalid-feedback">Store name must be 3–50
+										characters and can include spaces.</div>
 								</div>
 
 								<div class="form-floating mb-3">
@@ -159,7 +160,8 @@
 									<input type="password" class="form-control" id="newPassword"
 										name="txtNewPassword" placeholder="New Password"> <label
 										for="newPassword">New Password</label>
-									<div class="newPassword-error text-danger"></div>
+									<div class="invalid-feedback">Password must contain
+										uppercase, lowercase, number & symbol (8+ chars).</div>
 								</div>
 							</div>
 
@@ -177,7 +179,7 @@
 										id="confirmPassword" name="txtConfirmPassword"
 										placeholder="Confirm New Password"> <label
 										for="confirmPassword">Confirm New Password</label>
-									<div class="confirmPassword-error text-danger"></div>
+									<div class="invalid-feedback">Passwords must match.</div>
 								</div>
 							</div>
 						</div>
@@ -186,9 +188,10 @@
 							<button type="submit" class="btn btn-primary me-2">
 								<i class="fas fa-save me-2"></i>Update Profile
 							</button>
-							<a href="ProfileServlet" class="btn btn-outline-secondary" id="btnCancel">
-        <i class="fas fa-times me-2"></i>Cancel
-    </a>
+							<a href="ProfileServlet" class="btn btn-outline-secondary"
+								id="btnCancel"> <i class="fas fa-times me-2"></i>Cancel
+							</a>
+
 						</div>
 					</form>
 				</div>
@@ -197,7 +200,7 @@
 		<!-- /MAIN CONTENT -->
 	</div>
 
-	<!-- Shared JS -->
+
 	<script src="${bootstrapJs}"></script>
 	<script src="${appJs}"></script>
 	<script>
@@ -214,7 +217,7 @@
 								document.getElementById('editProfile').style.display = 'inline-block';
 							}
 
-							// Form validation
+							// FORM VALIDATION
 							const newPasswordField = document
 									.getElementById('newPassword');
 							const confirmPasswordField = document
@@ -237,7 +240,6 @@
 							confirmPasswordField.addEventListener('input',
 									validatePasswords);
 
-							// Require current password if new password is entered
 							newPasswordField
 									.addEventListener(
 											'input',
@@ -259,7 +261,7 @@
 												}
 											});
 
-							// File upload validation
+							// FILE UPLOAD VALIDATION
 							const fileInput = document
 									.getElementById('storeLogo');
 							if (fileInput) {
@@ -278,91 +280,140 @@
 												});
 							}
 
-							// Profile form validation
-							const medicalStoreNameInput = document.getElementById('medicalStoreName');
-							const newPasswordInput = document.getElementById('newPassword');
-							const confirmPasswordInput = document.getElementById('confirmPassword');
-							const medicalStoreNameError = document.querySelector('.medicalStoreName-error');
-							const newPasswordError = document.querySelector('.newPassword-error');
-							const confirmPasswordError = document.querySelector('.confirmPassword-error');
-							const updateBtn = document.querySelector('#profileForm button[type="submit"]');
+							// PROFILE FORM VALIDATION
+							const medicalStoreNameInput = document
+									.getElementById('medicalStoreName');
+							const newPasswordInput = document
+									.getElementById('newPassword');
+							const confirmPasswordInput = document
+									.getElementById('confirmPassword');
+							const updateBtn = document
+									.querySelector('#profileForm button[type="submit"]');
+
+							const storeNamePattern = /^[a-zA-Z0-9 ]{3,50}$/;
+							const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+={}[\\]|\\\\]).{8,}$/;
+
+							function validateField(input, pattern) {
+								if (!pattern.test(input.value.trim())) {
+									input.classList.add('is-invalid');
+									input.classList.remove('is-valid');
+									return false;
+								} else {
+									input.classList.remove('is-invalid');
+									input.classList.add('is-valid');
+									return true;
+								}
+							}
+
+							function validatePasswordMatch() {
+								const hasNewPassword = newPasswordInput.value
+										.trim() !== '';
+								const hasConfirmPassword = confirmPasswordInput.value
+										.trim() !== '';
+
+								if ((hasNewPassword || hasConfirmPassword)) {
+									if (newPasswordInput.value !== confirmPasswordInput.value) {
+										confirmPasswordInput.classList
+												.add('is-invalid');
+										confirmPasswordInput.classList
+												.remove('is-valid');
+										return false;
+									} else if (hasConfirmPassword) {
+										confirmPasswordInput.classList
+												.remove('is-invalid');
+										confirmPasswordInput.classList
+												.add('is-valid');
+										return true;
+									}
+								} else {
+									confirmPasswordInput.classList.remove(
+											'is-invalid', 'is-valid');
+								}
+								return true;
+							}
 
 							function validateProfileForm() {
 								let isValid = true;
-								
-								// Medical Store Name validation
-								const storeNameValid = /^[a-zA-Z0-9 ]{3,50}$/.test(medicalStoreNameInput.value);
-								if (!storeNameValid) {
+
+								if (!validateField(medicalStoreNameInput,
+										storeNamePattern)) {
 									isValid = false;
 								}
-								
-								// Password validation (only if password fields are filled)
-								const hasNewPassword = newPasswordInput.value.trim() !== '';
-								const hasConfirmPassword = confirmPasswordInput.value.trim() !== '';
-								
-								if (hasNewPassword || hasConfirmPassword) {
-									const passwordValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+={}[\\]|\\\\]).{8,}$/.test(newPasswordInput.value);
-									const passwordsMatch = newPasswordInput.value === confirmPasswordInput.value;
-									
-									if (!passwordValid || !passwordsMatch) {
+
+								//PASSWORD VALIDATION
+								const hasNewPassword = newPasswordInput.value
+										.trim() !== '';
+
+								if (hasNewPassword) {
+									if (!validateField(newPasswordInput,
+											passwordPattern)) {
 										isValid = false;
 									}
+								} else {
+									newPasswordInput.classList.remove(
+											'is-invalid', 'is-valid');
 								}
-								
+
+								if (!validatePasswordMatch()) {
+									isValid = false;
+								}
+
 								if (updateBtn) {
 									updateBtn.disabled = !isValid;
 								}
 							}
 
-							// Medical Store Name validation
+							// STORE NAME VALIDATION
 							if (medicalStoreNameInput) {
-								medicalStoreNameInput.addEventListener('input', function() {
-									if (!/^[a-zA-Z0-9 ]{3,50}$/.test(this.value)) {
-										medicalStoreNameError.innerHTML = 'Store name must be 3–50 characters and can include spaces.';
-									} else {
-										medicalStoreNameError.innerHTML = '';
-									}
-									validateProfileForm();
-								});
+								medicalStoreNameInput.addEventListener('input',
+										function() {
+											validateField(this,
+													storeNamePattern);
+											validateProfileForm();
+										});
 							}
 
-							// New Password validation
+							// NEW PASSWORD VALIDATION
 							if (newPasswordInput) {
-								newPasswordInput.addEventListener('input', function() {
-									const hasPassword = this.value.trim() !== '';
-									if (hasPassword && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+={}[\\]|\\\\]).{8,}$/.test(this.value)) {
-										newPasswordError.innerHTML = 'Password must contain uppercase, lowercase, number & symbol (8+ chars).';
-									} else {
-										newPasswordError.innerHTML = '';
-									}
-									validateProfileForm();
-								});
+								newPasswordInput.addEventListener('input',
+										function() {
+											const hasPassword = this.value
+													.trim() !== '';
+											if (hasPassword) {
+												validateField(this,
+														passwordPattern);
+											} else {
+												this.classList.remove(
+														'is-invalid',
+														'is-valid');
+											}
+											validatePasswordMatch();
+											validateProfileForm();
+										});
 							}
 
-							// Confirm Password validation
+							// CONFIRM PASSWORD VALIDATION
 							if (confirmPasswordInput) {
-								confirmPasswordInput.addEventListener('input', function() {
-									const hasNewPassword = newPasswordInput.value.trim() !== '';
-									const hasConfirmPassword = this.value.trim() !== '';
-									
-									if ((hasNewPassword || hasConfirmPassword) && this.value !== newPasswordInput.value) {
-										confirmPasswordError.innerHTML = 'Passwords must match.';
-									} else {
-										confirmPasswordError.innerHTML = '';
-									}
-									validateProfileForm();
-								});
+								confirmPasswordInput.addEventListener('input',
+										function() {
+											validatePasswordMatch();
+											validateProfileForm();
+										});
 							}
 
-							// Initial validation
+							// INITIAL VALIDATION
 							validateProfileForm();
 
-							// Cancel button
+							// CANCLE BUTTON
 							const cancelBtn = document
 									.getElementById('btnCancel');
 							if (cancelBtn) {
-								cancelBtn.addEventListener('click',function() {
-													if (window.PMS && window.PMS.hideForm) {
+								cancelBtn
+										.addEventListener(
+												'click',
+												function() {
+													if (window.PMS
+															&& window.PMS.hideForm) {
 														window.PMS.hideForm();
 													} else {
 														document

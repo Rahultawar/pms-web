@@ -143,7 +143,7 @@ public class ProfileServlet extends HttpServlet {
 					return;
 				}
 
-				// Validate new password format
+				// VALIDATE NEW PASSWORD FORMATE
 				if (!newPassword
 						.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_\\-+={}\\[\\]|\\\\]).{8,}$")) {
 					request.setAttribute("errorMessage",
@@ -239,7 +239,6 @@ public class ProfileServlet extends HttpServlet {
 				User currentUser = userDAO.getUserByUsername(username);
 				request.setAttribute("userProfile", currentUser);
 			} catch (Exception ex) {
-				// Ignore if can't reload user data
 			}
 		}
 
