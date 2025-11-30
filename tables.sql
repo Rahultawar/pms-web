@@ -50,8 +50,8 @@ CREATE TABLE `distributor` (
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`distributorId`),
   UNIQUE KEY `ux_distributor_name` (`distributorName`),
-  CONSTRAINT fk_distributor_user 
-  FOREIGN KEY (userId) REFERENCES user(userId) 
-  ON DELETE CASCADE 
+  CONSTRAINT fk_distributor_user
+  FOREIGN KEY (userId) REFERENCES user(userId)
+  ON DELETE CASCADE
   ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

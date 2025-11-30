@@ -19,6 +19,7 @@
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
         </li>
+        
         <li>
             <a href="ProductServlet" class="nav-link ${param.activePage == 'product' ? 'active' : ''}" aria-current="${param.activePage == 'product' ? 'page' : ''}">
                 <i class="fas fa-pills me-2"></i> Product
@@ -34,9 +35,18 @@
                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
             </a>
         </li>
+        
         <li>
             <a href="ImportExportServlet" class="nav-link ${param.activePage == 'import-export' ? 'active' : ''}" aria-current="${param.activePage == 'import-export' ? 'page' : ''}">
                 <i class="fas fa-file-csv me-2"></i> Import CSV Data
+            </a>
+        </li>
+        <li>
+            <a href="NotificationServlet" class="nav-link ${param.activePage == 'notifications' ? 'active' : ''}" aria-current="${param.activePage == 'notifications' ? 'page' : ''}">
+                <i class="fas fa-bell me-2"></i> Notifications
+                <c:if test="${totalNotifications > 0}">
+                    <span class="badge bg-danger ms-1">${totalNotifications}</span>
+                </c:if>
             </a>
         </li>
         <li>

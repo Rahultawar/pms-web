@@ -101,6 +101,12 @@ public class SaleServlet extends HttpServlet {
         request.setAttribute("productList", productDAO.getProductsPaginated(0, 1000, userId));
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
 
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("sale.jsp");
         dispatcher.forward(request, response);
     }

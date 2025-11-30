@@ -155,6 +155,13 @@ public class DistributorServlet extends HttpServlet {
         request.setAttribute("noOfPages", totalPages);
         request.setAttribute("currentPage", page);
 
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        com.inventory.dao.ProductDAO productDAO = new com.inventory.dao.ProductDAO();
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("distributor.jsp");
         dispatcher.forward(request, response);
     }

@@ -1,9 +1,7 @@
 package com.inventory.servlet;
 
 import com.inventory.dao.ProductDAO;
-import com.inventory.dao.DistributorDAO;
-import com.inventory.dao.SaleDAO;
-import com.inventory.dao.UserDAO;
+import com.inventory.models.Product;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -13,9 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.List;
 
-@WebServlet("/DashboardServlet")
-public class DashboardServlet extends HttpServlet {
+@WebServlet("/NotificationServlet")
+public class NotificationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -28,28 +27,17 @@ public class DashboardServlet extends HttpServlet {
 
         // OBJECTS OF DAOs
         ProductDAO productDAO = new ProductDAO();
-        DistributorDAO distributorDAO = new DistributorDAO();
-        UserDAO userDAO = new UserDAO();
-        SaleDAO saleDAO = new SaleDAO();
 
         int userId = (Integer) session.getAttribute("userId");
 
-        // FETCH COUNTS
-        int saleCount = saleDAO.countSale();
-        int productCount = productDAO.countProduct(userId);
-        int distributorCount = distributorDAO.countDistributor(userId);
+        // FETCH NOTIFICATIONS
+        List<Product> lowStockProducts = productDAO.getLowStockProducts(userId);
+        List<Product> expiringProducts = productDAO.getExpiringProducts(userId);
 
-        // FETCH NOTIFICATION COUNTS
-        int lowStockCount = productDAO.getLowStockProducts(userId).size();
-        int expiringCount = productDAO.getExpiringProducts(userId).size();
-        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("lowStockProducts", lowStockProducts);
+        request.setAttribute("expiringProducts", expiringProducts);
 
-        request.setAttribute("productCount", productCount);
-        request.setAttribute("distributorCount", distributorCount);
-        request.setAttribute("saleCount", saleCount);
-        request.setAttribute("totalNotifications", totalNotifications);
-
-        RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
+        RequestDispatcher dispatcher = request.getRequestDispatcher("notifications.jsp");
         dispatcher.forward(request, response);
     }
 

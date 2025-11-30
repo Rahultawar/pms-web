@@ -53,6 +53,12 @@ public class ImportExportServlet extends HttpServlet {
                 downloadDistributorTemplate(response, userId);
             }
         } else {
+            // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+            int lowStockCount = productDAO.getLowStockProducts(userId).size();
+            int expiringCount = productDAO.getExpiringProducts(userId).size();
+            int totalNotifications = lowStockCount + expiringCount;
+            request.setAttribute("totalNotifications", totalNotifications);
+
             RequestDispatcher dispatcher = request.getRequestDispatcher("import-export.jsp");
             dispatcher.forward(request, response);
         }
