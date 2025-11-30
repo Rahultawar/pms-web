@@ -96,6 +96,7 @@
                                     <option value="">Choose what to import</option>
                                     <option value="products">Products</option>
                                     <option value="distributors">Distributors</option>
+                                    <option value="customers">Customers</option>
                                 </select>
                             </div>
 
@@ -119,6 +120,12 @@
                                         <p><strong>Distributors CSV should have these columns in order:</strong></p>
                                         <small>
                                             distributorName, contactPerson, email, phone, address, city, state, pinCode
+                                        </small>
+                                    </div>
+                                    <div id="customersFormat" style="display: none;">
+                                        <p><strong>Customers CSV should have these columns in order:</strong></p>
+                                        <small>
+                                            customerName, contactNumber, userId
                                         </small>
                                     </div>
                                 </div>
@@ -149,6 +156,10 @@
                             <a href="ImportExportServlet?action=downloadTemplate&type=distributors"
                                class="btn btn-outline-success">
                                 <i class="fas fa-file-csv me-2"></i>Download Distributors Template
+                            </a>
+                            <a href="ImportExportServlet?action=downloadTemplate&type=customers"
+                               class="btn btn-outline-success">
+                                <i class="fas fa-file-csv me-2"></i>Download Customers Template
                             </a>
                         </div>
                         <hr>
@@ -181,19 +192,81 @@ document.getElementById('importType').addEventListener('change', function() {
     var instructions = document.getElementById('formatInstructions');
     var productsFormat = document.getElementById('productsFormat');
     var distributorsFormat = document.getElementById('distributorsFormat');
+    var customersFormat = document.getElementById('customersFormat');
 
     if (selectedType) {
         instructions.style.display = 'block';
         if (selectedType === 'products') {
             productsFormat.style.display = 'block';
             distributorsFormat.style.display = 'none';
+            customersFormat.style.display = 'none';
         } else if (selectedType === 'distributors') {
             productsFormat.style.display = 'none';
             distributorsFormat.style.display = 'block';
+            customersFormat.style.display = 'none';
+        } else if (selectedType === 'customers') {
+            productsFormat.style.display = 'none';
+            distributorsFormat.style.display = 'none';
+            customersFormat.style.display = 'block';
         }
     } else {
         instructions.style.display = 'none';
     }
+});
+
+// Format selector for sample data
+document.addEventListener('DOMContentLoaded', function() {
+    function updateFormatDisplay() {
+        var selected = document.querySelector('input[name="formatSelector"]:checked');
+        var value = selected ? selected.id : 'showProducts';
+
+        var sections = document.querySelectorAll('.format-section');
+        var container = document.querySelector('.sample-data');
+
+        sections.forEach(function(section) {
+            section.style.display = 'none';
+            section.classList.remove('format-single');
+            // Reset classes for when showing all
+            section.classList.remove('col-12');
+            if (!section.classList.contains('col-lg-4')) {
+                section.classList.add('col-lg-4');
+            }
+            section.classList.add('mb-4');
+        });
+
+        if (value === 'showAll') {
+            sections.forEach(function(section) {
+                section.style.display = 'block';
+                section.classList.add('col-lg-4');
+                section.classList.remove('col-12');
+            });
+        } else {
+            var targetClass = '';
+            if (value === 'showProducts') {
+                targetClass = 'format-products';
+            } else if (value === 'showDistributors') {
+                targetClass = 'format-distributors';
+            } else if (value === 'showCustomers') {
+                targetClass = 'format-customers';
+            }
+
+            var targetSection = document.querySelector('.' + targetClass);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                targetSection.classList.add('format-single');
+                targetSection.classList.add('col-12');
+                targetSection.classList.add('mb-4');
+            }
+        }
+    }
+
+    // Initialize - show products by default
+    updateFormatDisplay();
+
+    // Add event listeners to radio buttons
+    document.querySelectorAll('input[name="formatSelector"]').forEach(function(radio) {
+        radio.addEventListener('change', updateFormatDisplay);
+    });
 });
 </script>
 

@@ -30,6 +30,11 @@
             </a>
         </li>
         <li>
+            <a href="CustomerServlet" class="nav-link ${param.activePage == 'customer' ? 'active' : ''}" aria-current="${param.activePage == 'customer' ? 'page' : ''}">
+                <i class="fas fa-users me-2"></i> Customers
+            </a>
+        </li>
+        <li>
             <a href="SaleServlet" class="nav-link ${param.activePage == 'sale' ? 'active' : ''}" aria-current="${param.activePage == 'sale' ? 'page' : ''}">
                 <i class="fas fa-file-invoice-dollar me-2"></i> Sales
             </a>

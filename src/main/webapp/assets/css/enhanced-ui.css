@@ -475,6 +475,28 @@
     .table {
         min-width: 600px;
     }
+
+/* ========================================
+   SAMPLE DATA SECTION IMPROVED LAYOUT
+   ======================================== */
+.sample-data .table {
+    min-width: auto;
+}
+
+.sample-data .table-responsive {
+    overflow-x: visible;
+}
+
+/* Hide format sections by default, will be shown via JS */
+.format-section {
+    display: none;
+}
+
+.format-single {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
 }
 
 /* Mobile (≤ 768px) */
@@ -544,6 +566,22 @@
     /* Chart containers */
     .chart-container {
         padding: 16px;
+    }
+
+    /* Format selector responsive for mobile */
+    .format-selector .btn-group {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .format-selector .btn {
+        font-size: 11px;
+        padding: 4px 6px;
+        min-width: 70px;
+    }
+
+    .format-selector .form-label {
+        font-size: 12px;
     }
 }
 
@@ -637,6 +675,53 @@
     .stat-card {
         break-inside: avoid;
     }
+}
+
+/* ========================================
+   FORMAT SELECTOR BUTTONS FIXES
+   ======================================== */
+/* Fix hover color for format selector buttons */
+.btn-group .btn-outline-primary {
+    border-color: #667eea !important;
+    
+}
+
+.btn-group .btn-outline-primary:hover {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+    border-color: #5a67d8 !important;
+    color: #5a67d8 !important;
+}
+
+.btn-group .btn-check:checked + .btn-outline-primary {
+    background-color: #667eea !important;
+    border-color: #667eea !important;
+    color: white !important;
+}
+
+/* Ensure tables take full width when in single format */
+.format-single {
+    flex: 0 0 100% !important;
+    flex-basis: 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.format-single .table-responsive {
+    width: 100% !important;
+    overflow-x: visible !important;
+}
+
+.format-single .table {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed;
+}
+
+/* Ensure container takes full width */
+.format-section {
+    min-width: 0;
+    width: auto;
 }
 
 /* Smooth scroll behavior */
