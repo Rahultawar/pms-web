@@ -1,5 +1,24 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<!-- Calculate unread notification count -->
+<%
+Integer originalNotificationCount = (Integer) request.getAttribute("totalNotifications");
+if (session.getAttribute("userId") != null) {
+    Integer userIdObj = (Integer) session.getAttribute("userId");
+    int userId = userIdObj.intValue(); // Convert Integer to int
+    try {
+        com.inventory.dao.UserNotificationDAO userNotificationDAO = new com.inventory.dao.UserNotificationDAO();
+        int unreadCount = userNotificationDAO.getUnreadNotificationCount(userId);
+        request.setAttribute("totalNotifications", unreadCount);
+    } catch (Exception e) {
+        // Fallback to original count if calculation fails
+        if (originalNotificationCount != null) {
+            request.setAttribute("totalNotifications", originalNotificationCount);
+        }
+    }
+}
+%>
+
 <!-- SIDEBAR -->
 <c:url var="iconUrl" value="/assets/images/logo-modern.svg" />
 <c:url var="logoutUrl" value="/LogoutServlet" />
