@@ -48,9 +48,9 @@ public class CustomerServlet extends HttpServlet {
                 e.printStackTrace();
                 String errorMessage = getCustomErrorMessage(e);
                 request.setAttribute("errorMessage", errorMessage);
-                request.setAttribute("customerDetails", customer); // Keep form data for adding
+                request.setAttribute("customerDetails", customer); // KEEP FORM DATA FOR ADDING
                 request.setAttribute("actionTypeValue", "add");
-                // Load required attributes for JSP
+                // LOAD REQUIRED ATTRIBUTES FOR JSP
                 loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("customer.jsp");
                 dispatcher.forward(request, response);
@@ -79,8 +79,8 @@ public class CustomerServlet extends HttpServlet {
                 e.printStackTrace();
                 String errorMessage = getCustomErrorMessage(e);
                 request.setAttribute("errorMessage", errorMessage);
-                request.setAttribute("customerDetails", customer); // Keep form data for editing
-                // Load required attributes for JSP
+                request.setAttribute("customerDetails", customer); // KEEP FORM DATA FOR EDITING
+                // LOAD REQUIRED ATTRIBUTES FOR JSP
                 loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("customer.jsp");
                 dispatcher.forward(request, response);
@@ -91,7 +91,7 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
@@ -137,11 +137,11 @@ public class CustomerServlet extends HttpServlet {
     }
 
     private void loadAttributesForJSP(HttpServletRequest request, String pageParam, String deleteIdParam) {
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
-        if (userId == null) return; // Though we already check in doGet
+        if (userId == null) return; // THOUGH WE ALREADY CHECK IN DOGET
 
-        // PAGINATION LOGIC - Default to page 1 if not provided
+        // PAGINATION LOGIC - DEFAULT TO PAGE 1 IF NOT PROVIDED
         int page = 1;
         int recordsPerPage = 5;
         if (pageParam != null) {
@@ -155,13 +155,13 @@ public class CustomerServlet extends HttpServlet {
         int totalRecords = customerDAO.countCustomers(userId);
         int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
 
-        // Delete if requested
+        // DELETE IF REQUESTED
         if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
             try {
                 int deleteId = Integer.parseInt(deleteIdParam);
                 customerDAO.deleteCustomer(deleteId, userId);
             } catch (NumberFormatException e) {
-                // Ignore invalid deleteId
+                // IGNORE INVALID DELETEID
             }
         }
 

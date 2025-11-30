@@ -1,105 +1,44 @@
 package com.inventory.models;
 
-import javax.persistence.*;
-
-import com.inventory.dao.ProductDAO;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.sql.Timestamp;
 
-@Entity
-@Table(name = "sale", uniqueConstraints = @UniqueConstraint(name = "ux_sale_saleUuid", columnNames = "saleUuid"))
 public class Sale implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public enum SaleStatus {
-        pending, completed
+    public enum PaymentMethod {
+        CASH, UPI, CARD, NETBANKING, OTHER
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "saleId", nullable = false)
+    public enum SaleStatus {
+        pending, paid
+    }
+
     private Integer saleId;
-
-    @Column(name = "saleUuid", length = 36, nullable = false, unique = true, updatable = false)
-    private String saleUuid;
-
-    @Column(name = "productId", nullable = false)
+    private Integer customerId;
+    private Integer userId;
     private Integer productId;
-
-    @Column(name = "distributorId")
     private Integer distributorId;
-
-    @Column(name = "saleDate", nullable = false)
-    private LocalDateTime saleDate;
-
-    @Column(name = "quantity", nullable = false)
     private Integer quantity = 1;
-
-    @Column(name = "discountAmount", precision = 10, scale = 2, nullable = false)
-    private BigDecimal discountAmount = BigDecimal.ZERO;
-
-    @Column(name = "totalAmount", precision = 12, scale = 2, insertable = false, updatable = false)
+    private Integer subQuantity;
+    private Timestamp saleDate;
+    private BigDecimal discount = BigDecimal.ZERO;
     private BigDecimal totalAmount;
-
-    @Column(name = "amountGiven", precision = 12, scale = 2, nullable = false)
-    private BigDecimal amountGiven = BigDecimal.ZERO;
-
-    @Column(name = "paymentMethod", length = 50)
-    private String paymentMethod;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 16, nullable = false)
+    private BigDecimal amountGivenByCustomer = BigDecimal.ZERO;
+    private PaymentMethod paymentMethod;
     private SaleStatus status = SaleStatus.pending;
-
-    @Column(name = "customerName", length = 255)
+    private Timestamp createdAt;
+    
+    // DISPLAY FIELDS (NOT IN DATABASE, POPULATED VIA JOINS)
     private String customerName;
-
-    @Column(name = "mobileNumber", length = 20)
-    private String mobileNumber;
-
-    @Column(name = "deletedFlag", nullable = false)
-    private Boolean deletedFlag = false;
-
-    @Column(name = "createdAt", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private String productName;
+    private String distributorName;
 
     public Sale() {
     }
 
-    @PrePersist
-    private void prePersist() {
-        if (saleUuid == null || saleUuid.isBlank()) {
-            saleUuid = UUID.randomUUID().toString();
-        }
-        if (saleDate == null) {
-            saleDate = LocalDateTime.now();
-        }
-        if (discountAmount == null) {
-            discountAmount = BigDecimal.ZERO;
-        }
-        if (amountGiven == null) {
-            amountGiven = BigDecimal.ZERO;
-        }
-    }
-
-    @Transient
-    public BigDecimal computeExpectedTotal() {
-        BigDecimal sellingPrice = ProductDAO.getSellingPriceById(productId);
-        BigDecimal qty = BigDecimal.valueOf(quantity == null ? 0 : quantity);
-        BigDecimal price = sellingPrice == null ? BigDecimal.ZERO : sellingPrice;
-        BigDecimal discount = discountAmount == null ? BigDecimal.ZERO : discountAmount;
-        BigDecimal calc = price.multiply(qty).subtract(discount);
-        if (calc.compareTo(BigDecimal.ZERO) < 0) {
-            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        }
-        return calc.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    // GETTER / SETTER
+    // GETTERS AND SETTERS
     public Integer getSaleId() {
         return saleId;
     }
@@ -108,12 +47,20 @@ public class Sale implements Serializable {
         this.saleId = saleId;
     }
 
-    public String getSaleUuid() {
-        return saleUuid;
+    public Integer getCustomerId() {
+        return customerId;
     }
 
-    public void setSaleUuid(String saleUuid) {
-        this.saleUuid = saleUuid;
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public Integer getProductId() {
@@ -132,14 +79,6 @@ public class Sale implements Serializable {
         this.distributorId = distributorId;
     }
 
-    public LocalDateTime getSaleDate() {
-        return saleDate;
-    }
-
-    public void setSaleDate(LocalDateTime saleDate) {
-        this.saleDate = saleDate;
-    }
-
     public Integer getQuantity() {
         return quantity;
     }
@@ -148,31 +87,51 @@ public class Sale implements Serializable {
         this.quantity = quantity;
     }
 
-    public BigDecimal getDiscountAmount() {
-        return discountAmount;
+    public Integer getSubQuantity() {
+        return subQuantity;
     }
 
-    public void setDiscountAmount(BigDecimal discountAmount) {
-        this.discountAmount = discountAmount;
+    public void setSubQuantity(Integer subQuantity) {
+        this.subQuantity = subQuantity;
+    }
+
+    public Timestamp getSaleDate() {
+        return saleDate;
+    }
+
+    public void setSaleDate(Timestamp saleDate) {
+        this.saleDate = saleDate;
+    }
+
+    public BigDecimal getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(BigDecimal discount) {
+        this.discount = discount;
     }
 
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
 
-    public BigDecimal getAmountGiven() {
-        return amountGiven;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
-    public void setAmountGiven(BigDecimal amountGiven) {
-        this.amountGiven = amountGiven;
+    public BigDecimal getAmountGivenByCustomer() {
+        return amountGivenByCustomer;
     }
 
-    public String getPaymentMethod() {
+    public void setAmountGivenByCustomer(BigDecimal amountGivenByCustomer) {
+        this.amountGivenByCustomer = amountGivenByCustomer;
+    }
+
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 
@@ -184,6 +143,14 @@ public class Sale implements Serializable {
         this.status = status;
     }
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public String getCustomerName() {
         return customerName;
     }
@@ -192,23 +159,19 @@ public class Sale implements Serializable {
         this.customerName = customerName;
     }
 
-    public String getMobileNumber() {
-        return mobileNumber;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setMobileNumber(String mobileNumber) {
-        this.mobileNumber = mobileNumber;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public Boolean getDeletedFlag() {
-        return deletedFlag;
+    public String getDistributorName() {
+        return distributorName;
     }
 
-    public void setDeletedFlag(Boolean deletedFlag) {
-        this.deletedFlag = deletedFlag;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public void setDistributorName(String distributorName) {
+        this.distributorName = distributorName;
     }
 }

@@ -52,6 +52,90 @@ public class ProductDAO {
         return productList;
     }
 
+    public List<Product> getProductsByUserId(int userId) {
+        List<Product> productList = new ArrayList<>();
+        String query = "SELECT * FROM product WHERE userId = ? ORDER BY productName ASC";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Product product = new Product();
+                    product.setProductId(resultSet.getInt("productId"));
+                    product.setProductName(resultSet.getString("productName"));
+                    product.setDistributorId(resultSet.getInt("distributorId"));
+                    product.setUserId(resultSet.getInt("userId"));
+                    product.setQuantity(resultSet.getInt("quantity"));
+                    product.setSubQuantity(resultSet.getInt("subQuantity"));
+                    product.setUnit(resultSet.getString("unit"));
+                    product.setLocation(resultSet.getString("location"));
+                    product.setStrength(resultSet.getString("strength"));
+                    product.setCategory(resultSet.getString("category"));
+                    product.setManufacturer(resultSet.getString("manufacturer"));
+                    product.setManufacturingDate(resultSet.getDate("manufacturingDate"));
+                    product.setExpiryDate(resultSet.getDate("expiryDate"));
+                    product.setPurchasingPrice(resultSet.getBigDecimal("purchasingPrice"));
+                    product.setBatchNumber(resultSet.getString("batchNumber"));
+                    product.setSellingPrice(resultSet.getBigDecimal("sellingPrice"));
+                    product.setReorderLevel(resultSet.getInt("reorderLevel"));
+                    product.setCreatedAt(resultSet.getTimestamp("createdAt"));
+
+                    productList.add(product);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching products by userId: " + e.getMessage(), e);
+        }
+
+        return productList;
+    }
+
+    // GET PRODUCT BY ID AND USER ID (FOR SECURITY)
+    public Product getProductByIdAndUserId(int productId, int userId) {
+        Product product = null;
+        String query = "SELECT * FROM product WHERE productId = ? AND userId = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, productId);
+            statement.setInt(2, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    product = new Product();
+                    product.setProductId(resultSet.getInt("productId"));
+                    product.setProductName(resultSet.getString("productName"));
+                    product.setDistributorId(resultSet.getInt("distributorId"));
+                    product.setUserId(resultSet.getInt("userId"));
+                    product.setQuantity(resultSet.getInt("quantity"));
+                    product.setSubQuantity(resultSet.getInt("subQuantity"));
+                    product.setUnit(resultSet.getString("unit"));
+                    product.setLocation(resultSet.getString("location"));
+                    product.setStrength(resultSet.getString("strength"));
+                    product.setCategory(resultSet.getString("category"));
+                    product.setManufacturer(resultSet.getString("manufacturer"));
+                    product.setManufacturingDate(resultSet.getDate("manufacturingDate"));
+                    product.setExpiryDate(resultSet.getDate("expiryDate"));
+                    product.setPurchasingPrice(resultSet.getBigDecimal("purchasingPrice"));
+                    product.setBatchNumber(resultSet.getString("batchNumber"));
+                    product.setSellingPrice(resultSet.getBigDecimal("sellingPrice"));
+                    product.setReorderLevel(resultSet.getInt("reorderLevel"));
+                    product.setCreatedAt(resultSet.getTimestamp("createdAt"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching product by ID and userId: " + e.getMessage(), e);
+        }
+
+        return product;
+    }
+
     // ADD PRODUCT METHOD
     public void addProduct(Product product) {
         String query = "INSERT INTO product (productName, distributorId, userId, quantity, subQuantity, unit, location, "
@@ -168,45 +252,6 @@ public class ProductDAO {
         return result;
     }
 
-    // GET PRODUCT BY ID - WITH USER VERIFICATION
-    public Product getProductById(int productId, int userId) {
-        Product product = null;
-
-        String query = "SELECT * FROM product WHERE productId = ? AND userId = ?";
-        try (Connection connection = DBConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)) {
-
-            statement.setInt(1, productId);
-            statement.setInt(2, userId);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                product = new Product();
-                product.setProductId(resultSet.getInt("productId"));
-                product.setProductName(resultSet.getString("productName"));
-                product.setDistributorId(resultSet.getInt("distributorId"));
-                product.setUserId(resultSet.getInt("userId"));
-                product.setQuantity(resultSet.getInt("quantity"));
-                product.setSubQuantity(resultSet.getInt("subQuantity"));
-                product.setUnit(resultSet.getString("unit"));
-                product.setLocation(resultSet.getString("location"));
-                product.setStrength(resultSet.getString("strength"));
-                product.setCategory(resultSet.getString("category"));
-                product.setManufacturer(resultSet.getString("manufacturer"));
-                product.setManufacturingDate(resultSet.getDate("manufacturingDate"));
-                product.setExpiryDate(resultSet.getDate("expiryDate"));
-                product.setPurchasingPrice(resultSet.getBigDecimal("purchasingPrice"));
-                product.setBatchNumber(resultSet.getString("batchNumber"));
-                product.setSellingPrice(resultSet.getBigDecimal("sellingPrice"));
-                product.setReorderLevel(resultSet.getInt("reorderLevel"));
-                product.setCreatedAt(resultSet.getTimestamp("createdAt"));
-
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return product;
-    }
-
     // COUNT PRODUCT
     public int countProduct(int userId) {
         int records = 0;
@@ -268,5 +313,106 @@ public class ProductDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error deducting product quantity: " + e.getMessage(), e);
         }
+    }
+
+    public boolean deductProductSubQuantity(int productId, int subQuantity) {
+        String sql = "UPDATE product SET subQuantity = subQuantity - ? WHERE productId = ? AND subQuantity >= ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, subQuantity);
+            stmt.setInt(2, productId);
+            stmt.setInt(3, subQuantity);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER
+    // VERIFICATION
+    public List<Product> getLowStockProducts(int userId) {
+        List<Product> lowStockProducts = new ArrayList<>();
+
+        String query = "SELECT * FROM product WHERE userId = ? AND quantity <= reorderLevel AND reorderLevel > 0";
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Product product = new Product();
+                product.setProductId(resultSet.getInt("productId"));
+                product.setProductName(resultSet.getString("productName"));
+                product.setQuantity(resultSet.getInt("quantity"));
+                product.setReorderLevel(resultSet.getInt("reorderLevel"));
+                product.setCategory(resultSet.getString("category"));
+                product.setBatchNumber(resultSet.getString("batchNumber"));
+
+                lowStockProducts.add(product);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching low stock products: " + e.getMessage(), e);
+        }
+        return lowStockProducts;
+    }
+
+    // GET PRODUCTS WITH EXPIRY DATE NEAR (WITHIN 30 DAYS) - WITH USER VERIFICATION
+    public List<Product> getExpiringProducts(int userId) {
+        List<Product> expiringProducts = new ArrayList<>();
+
+        String query = "SELECT * FROM product WHERE userId = ? AND expiryDate IS NOT NULL AND expiryDate <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND expiryDate >= CURDATE()";
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Product product = new Product();
+                product.setProductId(resultSet.getInt("productId"));
+                product.setProductName(resultSet.getString("productName"));
+                product.setExpiryDate(resultSet.getDate("expiryDate"));
+                product.setQuantity(resultSet.getInt("quantity"));
+                product.setCategory(resultSet.getString("category"));
+                product.setBatchNumber(resultSet.getString("batchNumber"));
+
+                expiringProducts.add(product);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching expiring products: " + e.getMessage(), e);
+        }
+        return expiringProducts;
+    }
+
+    // GET PRODUCT CATEGORY DISTRIBUTION
+    public java.util.Map<String, Integer> getProductCategoryDistribution(int userId) {
+        java.util.Map<String, Integer> categoryData = new java.util.LinkedHashMap<>();
+        String query = "SELECT category, COUNT(*) as count " +
+                "FROM product " +
+                "WHERE userId = ? " +
+                "GROUP BY category " +
+                "ORDER BY count DESC " +
+                "LIMIT 10";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String category = resultSet.getString("category");
+                    if (category != null && !category.trim().isEmpty()) {
+                        categoryData.put(category, resultSet.getInt("count"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return categoryData;
     }
 }
