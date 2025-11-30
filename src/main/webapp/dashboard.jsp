@@ -136,12 +136,94 @@
                             <!-- /TOTAL REVENUE CARD -->
                         </div>
 
+                        <!-- Second Row of Cards -->
+                        <div class="row">
+                            <!-- YEARLY SALE CARD -->
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-card stat-card-purple">
+                                    <div class="stat-icon-wrapper">
+                                        <i class="fas fa-calendar-alt stat-icon"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h6 class="stat-label">Yearly Sale</h6>
+                                        <h2 class="stat-value"><span id="yearlySaleAmount">0</span></h2>
+                                        <div class="stat-trend">
+                                            <span class="badge badge-primary">
+                                                <i class="fas fa-calendar-check"></i> This year
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /YEARLY SALE CARD -->
+
+                            <!-- PENDING PAYMENT AMOUNT CARD -->
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-card stat-card-warning">
+                                    <div class="stat-icon-wrapper">
+                                        <i class="fas fa-rupee-sign stat-icon"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h6 class="stat-label">Pending Payment</h6>
+                                        <h2 class="stat-value"><span id="pendingPaymentsAmount">0</span></h2>
+                                        <div class="stat-trend">
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-exclamation-circle"></i> <span id="pendingPaymentsCount">0</span> transactions
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /PENDING PAYMENT AMOUNT CARD -->
+
+                            <!-- PENDING PAYMENT COUNT CARD -->
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-card stat-card-info">
+                                    <div class="stat-icon-wrapper">
+                                        <i class="fas fa-hourglass-half stat-icon"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h6 class="stat-label">Pending Payment Count</h6>
+                                        <h2 class="stat-value" id="pendingCount">0</h2>
+                                        <div class="stat-trend">
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-list"></i> Total pending
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /PENDING PAYMENT COUNT CARD -->
+
+                            <!-- PAYMENT METHODS CARD -->
+                            <div class="col-md-3 mb-4">
+                                <div class="stat-card stat-card-teal">
+                                    <div class="stat-icon-wrapper">
+                                        <i class="fas fa-credit-card stat-icon"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h6 class="stat-label">Payment Methods</h6>
+                                        <div style="margin-top: 10px;">
+                                            <canvas id="paymentMethodChart" style="max-height: 120px;"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /PAYMENT METHODS CARD -->
+                        </div>
+
                         <!-- Charts Row -->
                         <div class="row mt-4">
                             <div class="col-md-6 mb-4">
                                 <div class="chart-container">
-                                    <h5 class="mb-3"><i class="fas fa-chart-line me-2 text-gradient"></i>Sales Trend
-                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-gradient"></i>Sales Trend</h5>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="DashboardServlet?trend=day" class="btn ${trendType == 'day' ? 'btn-success' : 'btn-outline-success'}">Day</a>
+                                            <a href="DashboardServlet?trend=month" class="btn ${trendType == 'month' ? 'btn-success' : 'btn-outline-success'}">Month</a>
+                                            <a href="DashboardServlet?trend=year" class="btn ${trendType == 'year' ? 'btn-success' : 'btn-outline-success'}">Year</a>
+                                        </div>
+                                    </div>
                                     <canvas id="salesChart" style="max-height: 300px;"></canvas>
                                 </div>
                             </div>
@@ -198,23 +280,74 @@
                     document.addEventListener('DOMContentLoaded', function () {
                         const todaySaleAmountVal = Number('${todaySaleAmount}') || 0;
                         const monthlySaleAmountVal = Number('${monthlySaleAmount}') || 0;
+                        const yearlySaleAmountVal = Number('${yearlySaleAmount}') || 0;
+                        const pendingPaymentsAmountVal = Number('${pendingPaymentsAmount}') || 0;
+                        const pendingPaymentsCountVal = Number('${pendingPaymentsCount}') || 0;
                         const productCountVal = Number('${productCount}') || 0;
                         const distributorCountVal = Number('${distributorCount}') || 0;
                         const hasChartJs = typeof Chart !== 'undefined';
+
+                        // PARSE SALES TREND DATA FROM SERVER
+                        let salesTrendData = {};
+                        try {
+                            const salesDataStr = '<c:out value="${salesTrendData}" escapeXml="false"/>';
+                            console.log('Raw sales data:', salesDataStr);
+                            if (salesDataStr && salesDataStr !== '' && salesDataStr !== 'null') {
+                                salesTrendData = JSON.parse(salesDataStr);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing sales trend data:', e);
+                        }
+
+                        // PARSE CATEGORY DATA FROM SERVER
+                        let categoryData = {};
+                        try {
+                            const categoryDataStr = '<c:out value="${categoryData}" escapeXml="false"/>';
+                            console.log('Raw category data:', categoryDataStr);
+                            if (categoryDataStr && categoryDataStr !== '' && categoryDataStr !== 'null') {
+                                categoryData = JSON.parse(categoryDataStr);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing category data:', e);
+                        }
+
+                        // PARSE PAYMENT METHOD DATA FROM SERVER
+                        let paymentMethodData = {};
+                        try {
+                            const paymentDataStr = '<c:out value="${paymentMethodData}" escapeXml="false"/>';
+                            console.log('Raw payment method data:', paymentDataStr);
+                            if (paymentDataStr && paymentDataStr !== '' && paymentDataStr !== 'null') {
+                                paymentMethodData = JSON.parse(paymentDataStr);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing payment method data:', e);
+                        }
+
+                        console.log('Parsed sales trend data:', salesTrendData);
+                        console.log('Parsed category data:', categoryData);
+
+                        // PREPARE SALES CHART DATA
+                        const salesLabels = Object.keys(salesTrendData);
+                        const salesValues = Object.values(salesTrendData);
+                        
                         // SALES CHART
                         const salesCtx = document.getElementById('salesChart');
                         if (hasChartJs && salesCtx) {
                             new Chart(salesCtx, {
                                 type: 'line',
                                 data: {
-                                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                                    labels: salesLabels.length > 0 ? salesLabels : ['No Data'],
                                     datasets: [{
-                                        label: 'Daily Sales',
-                                        data: [12, 19, 15, 25, 22, 30, 28],
+                                        label: 'Sales Amount ()',
+                                        data: salesValues.length > 0 ? salesValues : [0],
                                         borderColor: '#4caf50',
                                         backgroundColor: 'rgba(76, 175, 80, 0.1)',
                                         tension: 0.4,
-                                        fill: true
+                                        fill: true,
+                                        borderWidth: 2,
+                                        pointRadius: 4,
+                                        pointBackgroundColor: '#4caf50',
+                                        pointHoverRadius: 6
                                     }]
                                 },
                                 options: {
@@ -222,17 +355,38 @@
                                     maintainAspectRatio: true,
                                     plugins: {
                                         legend: {
-                                            display: false
+                                            display: true,
+                                            position: 'top'
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return 'Amount: ' + context.parsed.y.toFixed(2);
+                                                }
+                                            }
                                         }
                                     },
                                     scales: {
                                         y: {
-                                            beginAtZero: true
+                                            beginAtZero: true,
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return value;
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             });
                         }
+
+                        // PREPARE PRODUCT CATEGORY DATA
+                        const categoryLabels = Object.keys(categoryData);
+                        const categoryValues = Object.values(categoryData);
+                        const categoryColors = [
+                            '#4caf50', '#2196f3', '#ff9800', '#f44336', '#9c27b0',
+                            '#00bcd4', '#ffeb3b', '#795548', '#607d8b', '#e91e63'
+                        ];
 
                         // PRODUCT CHART
                         const productCtx = document.getElementById('productChart');
@@ -240,16 +394,12 @@
                             new Chart(productCtx, {
                                 type: 'doughnut',
                                 data: {
-                                    labels: ['Analgesic', 'Antibiotics', 'Vitamins', 'Cardiac', 'Others'],
+                                    labels: categoryLabels.length > 0 ? categoryLabels : ['No Data'],
                                     datasets: [{
-                                        data: [30, 25, 20, 15, 10],
-                                        backgroundColor: [
-                                            '#4caf50',
-                                            '#2196f3',
-                                            '#ff9800',
-                                            '#f44336',
-                                            '#9c27b0'
-                                        ]
+                                        data: categoryValues.length > 0 ? categoryValues : [1],
+                                        backgroundColor: categoryLabels.length > 0 ? categoryColors.slice(0, categoryLabels.length) : ['#cccccc'],
+                                        borderWidth: 2,
+                                        borderColor: '#fff'
                                     }]
                                 },
                                 options: {
@@ -257,7 +407,72 @@
                                     maintainAspectRatio: true,
                                     plugins: {
                                         legend: {
-                                            position: 'bottom'
+                                            position: 'bottom',
+                                            labels: {
+                                                padding: 15,
+                                                font: {
+                                                    size: 12
+                                                }
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.parsed || 0;
+                                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                    const percentage = ((value / total) * 100).toFixed(1);
+                                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // PREPARE PAYMENT METHOD DATA
+                        const paymentLabels = Object.keys(paymentMethodData);
+                        const paymentValues = Object.values(paymentMethodData);
+                        const paymentColors = ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9c27b0'];
+
+                        // PAYMENT METHOD CHART
+                        const paymentCtx = document.getElementById('paymentMethodChart');
+                        if (hasChartJs && paymentCtx) {
+                            new Chart(paymentCtx, {
+                                type: 'pie',
+                                data: {
+                                    labels: paymentLabels.length > 0 ? paymentLabels : ['No Data'],
+                                    datasets: [{
+                                        data: paymentValues.length > 0 ? paymentValues : [1],
+                                        backgroundColor: paymentLabels.length > 0 ? paymentColors.slice(0, paymentLabels.length) : ['#cccccc'],
+                                        borderWidth: 2,
+                                        borderColor: '#fff'
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                padding: 10,
+                                                font: {
+                                                    size: 11
+                                                }
+                                            }
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.parsed || 0;
+                                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                    const percentage = ((value / total) * 100).toFixed(1);
+                                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -267,6 +482,10 @@
                         // ANIMATE COUNTERS
                         animateValue('todaySaleAmount', 0, todaySaleAmountVal, 800);
                         animateValue('monthlySaleAmount', 0, monthlySaleAmountVal, 1000);
+                        animateValue('yearlySaleAmount', 0, yearlySaleAmountVal, 1000);
+                        animateValue('pendingPaymentsAmount', 0, pendingPaymentsAmountVal, 1000);
+                        animateValue('pendingPaymentsCount', 0, pendingPaymentsCountVal, 800);
+                        animateValue('pendingCount', 0, pendingPaymentsCountVal, 800);
                         animateValue('countProduct', 0, productCountVal, 1200);
                         animateValue('countDistributor', 0, distributorCountVal, 1200);
 

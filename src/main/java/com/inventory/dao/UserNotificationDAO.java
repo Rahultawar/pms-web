@@ -1,6 +1,5 @@
 package com.inventory.dao;
 
-import com.inventory.models.UserNotification;
 import com.inventory.utils.DBConnection;
 
 import java.sql.Connection;

@@ -315,7 +315,23 @@ public class ProductDAO {
         }
     }
 
-    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER VERIFICATION
+    public boolean deductProductSubQuantity(int productId, int subQuantity) {
+        String sql = "UPDATE product SET subQuantity = subQuantity - ? WHERE productId = ? AND subQuantity >= ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, subQuantity);
+            stmt.setInt(2, productId);
+            stmt.setInt(3, subQuantity);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // GET PRODUCTS WITH LOW STOCK (QUANTITY <= REORDER LEVEL) - WITH USER
+    // VERIFICATION
     public List<Product> getLowStockProducts(int userId) {
         List<Product> lowStockProducts = new ArrayList<>();
 
@@ -369,5 +385,34 @@ public class ProductDAO {
             throw new RuntimeException("Error fetching expiring products: " + e.getMessage(), e);
         }
         return expiringProducts;
+    }
+
+    // GET PRODUCT CATEGORY DISTRIBUTION
+    public java.util.Map<String, Integer> getProductCategoryDistribution(int userId) {
+        java.util.Map<String, Integer> categoryData = new java.util.LinkedHashMap<>();
+        String query = "SELECT category, COUNT(*) as count " +
+                "FROM product " +
+                "WHERE userId = ? " +
+                "GROUP BY category " +
+                "ORDER BY count DESC " +
+                "LIMIT 10";
+
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String category = resultSet.getString("category");
+                    if (category != null && !category.trim().isEmpty()) {
+                        categoryData.put(category, resultSet.getInt("count"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return categoryData;
     }
 }
