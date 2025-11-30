@@ -8,11 +8,12 @@
 
         const page = document.body.dataset.page || '';
         let tableSelector = '';
-        
+
         if (page === 'product') tableSelector = '#productTable tbody';
         else if (page === 'distributor') tableSelector = '#distributorTable tbody';
+        else if (page === 'customer') tableSelector = '#customerTable tbody';
         else if (page === 'sale') tableSelector = '#saleTable tbody';
-        
+
         if (!tableSelector) return;
 
         searchBox.addEventListener('input', function (e) {
@@ -131,7 +132,23 @@
             return;
         }
 
-        var formId = page === 'distributor' ? 'distributorForm' : 'productForm';
+        var formId = '';
+        var tableId = '';
+        var noBoxId = '';
+        if (page === 'distributor') {
+            formId = 'distributorForm';
+            tableId = 'distributorTable';
+            noBoxId = 'noDistributorAvailable';
+        } else if (page === 'product') {
+            formId = 'productForm';
+            tableId = 'productTable';
+            noBoxId = 'noProductAvailable';
+        } else if (page === 'customer') {
+            formId = 'customerForm';
+            tableId = 'customerTable';
+            noBoxId = 'noCustomerAvailable';
+        }
+
         var form = document.getElementById(formId);
         if (!form) return;
         form.style.display = 'block';
@@ -143,9 +160,9 @@
         if (searchBox) searchBox.style.display = 'none';
 
         // hide table / no-data box
-        var table = document.getElementById(page === 'distributor' ? 'distributorTable' : 'productTable');
+        var table = document.getElementById(tableId);
         if (table) table.style.display = 'none';
-        var noBox = document.getElementById(page === 'distributor' ? 'noDistributorAvailable' : 'noProductAvailable');
+        var noBox = document.getElementById(noBoxId);
         if (noBox) noBox.style.display = 'none';
 
         // breadcrumb
@@ -156,13 +173,25 @@
             var li = document.createElement('li');
             li.className = 'breadcrumb-item active dynamic-crumb';
             li.setAttribute('aria-current', 'page');
-            li.innerText = mode === 'edit' ? (page === 'distributor' ? 'Edit Distributor' : 'Edit Product') : (page === 'distributor' ? 'Add Distributor' : 'Add Product');
+
+            var pageName = '';
+            if (page === 'distributor') pageName = 'Distributor';
+            else if (page === 'product') pageName = 'Product';
+            else if (page === 'customer') pageName = 'Customer';
+
+            li.innerText = mode === 'edit' ? 'Edit ' + pageName : 'Add ' + pageName;
             breadcrumb.appendChild(li);
         }
 
         if (mode === 'edit') {
             var formTitle = document.getElementById('formTitle');
-            if (formTitle) formTitle.textContent = page === 'distributor' ? 'Edit Distributor' : 'Edit Product';
+            if (formTitle) {
+                var pageName = '';
+                if (page === 'distributor') pageName = 'Distributor';
+                else if (page === 'product') pageName = 'Product';
+                else if (page === 'customer') pageName = 'Customer';
+                formTitle.textContent = 'Edit ' + pageName;
+            }
             var resetBtn = document.getElementById('btnReset');
             if (resetBtn) resetBtn.style.display = 'none';
         }

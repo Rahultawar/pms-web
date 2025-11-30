@@ -48,70 +48,45 @@
 <!-- Main Application Container -->
 <div class="app-shell">
 <!-- SIDEBAR -->
-<aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
-    <b>
-        <a href="DashboardServlet"
-           class="d-flex align-items-center mb-3 mb-md-0 p-2 me-md-auto text-decoration-none text-dark">
-            <img src="${iconUrl}" alt="Logo" width="40" height="40"
-                 style="border-radius: 8px;">
-            <span class="fs-6 ms-2">${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}</span>
-        </a>
-    </b>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-        <li class="nav-item">
-            <a href="DashboardServlet" class="nav-link">
-                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-            </a>
-        </li>
-        <li>
-            <a href="ProductServlet" class="nav-link active" aria-current="page">
-                <i class="fas fa-pills me-2"></i> Product
-            </a>
-        </li>
-        <li>
-            <a href="DistributorServlet" class="nav-link">
-                <i class="fas fa-truck me-2"></i> Distributor
-            </a>
-        </li>
-                        <li>
-                            <a href="SaleServlet" class="nav-link">
-                                <i class="fas fa-file-invoice-dollar me-2"></i> Sales
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="nav-link">
-                                <i class="fas fa-user me-2"></i> Profile
-                            </a>
-                        </li>
-                        <li>
-                            <a href="${logoutUrl}" class="nav-link">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-</aside>
+<jsp:include page="sidebar.jsp">
+    <jsp:param name="activePage" value="product" />
+</jsp:include>
 <!-- /SIDEBAR -->
 
 <!-- MAIN CONTENT -->
 <main id="content-wrapper" class="flex-fill">
     <div class="container-fluid">
         <div class="row align-items-center mb-3">
-            <div class="col-md-8 col-12 mb-2 mb-md-0">
+            <div class="col-md-6 col-12 mb-2 mb-md-0">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0" id="breadcrumbItem">
                         <li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Product</li>
+                        <li class="breadcrumb-item" id="productBreadcrumbLink"><a href="ProductServlet">Product</a></li>
+                        <li class="breadcrumb-item active" id="currentPageBreadcrumb" aria-current="page">Product</li>
                     </ol>
                 </nav>
             </div>
-            <div class="col-md-4 col-12 text-md-end">
+            <div class="col-md-3 col-12 mb-2 mb-md-0" id="searchContainer">
+                <div class="input-group">
+                    <input type="search" class="form-control" id="searchBox" placeholder="Search products...">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+            </div>
+            <div class="col-md-3 col-12 text-end">
                 <button class="btn btn-outline-success" id="addProduct"
                         data-action="show-form" data-mode="add">
                     <i class="fas fa-plus-circle me-2"></i>Add Product
                 </button>
             </div>
         </div>
+        <!-- Error message display -->
+        <c:if test="${not empty requestScope.errorMessage}">
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span><c:out value="${requestScope.errorMessage}"/></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </c:if>
         <div>
             <c:choose>
                 <c:when test="${empty productList}">
@@ -136,6 +111,7 @@
                                 <th>Expiry Date</th>
                                 <th>Quantity In Stock</th>
                                 <th>Selling Price</th>
+                                <th>Details</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -149,11 +125,11 @@
                                     <td>${product.expiryDate}</td>
                                     <td>${product.quantity}</td>
                                     <td>${product.sellingPrice}</td>
+                                    <td><a href="ProductServlet?viewId=${product.productId}" title="View Details"><i class="fas fa-info-circle"></i></a></td>
                                     <td><a href="ProductServlet?id=${product.productId}" title="Edit"><i
                                             class="fas fa-edit"></i></a></td>
-                     <td><a href="ProductServlet?deleteId=${product.productId}"
-                         data-confirm="Are you sure you want to delete this product?" title="Delete"><i class="fas fa-trash-alt"></i></a>
-                                    </td>
+                                    <td><a href="ProductServlet?deleteId=${product.productId}"
+                                         data-confirm="Are you sure you want to delete this product?" title="Delete"><i class="fas fa-trash-alt"></i></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>
@@ -185,35 +161,28 @@
             <!-- Product Add/Edit Form - Hidden by default, shown by JavaScript -->
             <div id="productForm" class="card form-card">
                 <h5 class="card-title mb-3" id="formTitle">Add New Product</h5>
-                <form action="ProductServlet" method="post">
+                <form action="ProductServlet" method="post" onsubmit="return validateProductForm()">
                     <!-- Hidden fields for product ID and action type -->
                     <input type="hidden" id="productId" name="productId"
                            value="${requestScope.productDetails.productId}">
                     <input type="hidden" name="actionType"
-                           value="${requestScope.productDetails != null ? 'update' : 'add'}">
+                           value="${requestScope.actionTypeValue != null ? requestScope.actionTypeValue : (requestScope.productDetails != null ? 'update' : 'add')}">
                     <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
 
                     <!-- Form fields organized in two columns for better layout -->
-                    <div class="row">
-                    <input type="hidden" id="productId" name="productId"
-                           value="${requestScope.productDetails.productId}">
-                    <input type="hidden" name="actionType"
-                           value="${requestScope.productDetails != null ? 'update' : 'add'}">
-                    <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
-
                     <div class="row">
                         <!-- First Column -->
 
                         <div class="col-md-6">
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="productName" name="txtProductName"
-                                       placeholder="Product Name"
+                                       placeholder="Product Name" maxlength="100"
                                        value="${requestScope.productDetails.productName}" required>
                                 <label for="productName">Product Name</label>
                             </div>
 
                             <div class="form-floating mb-3">
-                                <select class="form-control" id="category" name="selCategory">
+                                <select class="form-control" id="category" name="selCategory" required>
                                     <option value="" disabled>Select Category</option>
                                     <option value="Analgesic"
                                             <c:if test="${p != null and p.category == 'Analgesic'}">selected</c:if>>
@@ -324,29 +293,29 @@
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="manufacturer" name="txtManufacturer"
-                                       placeholder="Manufacturer"
+                                       placeholder="Manufacturer" maxlength="50"
                                        value="${requestScope.productDetails.manufacturer}" required>
                                 <label for="manufacturer">Manufacturer</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="batchNumber" name="txtBatchNumber"
-                                       placeholder="Batch Number"
+                                       placeholder="Batch Number" minlength="7" maxlength="30"
                                        value="${requestScope.productDetails.batchNumber}" required>
                                 <label for="batchNumber">Batch Number</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="strength" name="txtStrength"
-                                       placeholder="Strength"
+                                       placeholder="Strength" maxlength="25"
                                        value="${requestScope.productDetails.strength}" required>
                                 <label for="strength">Strength</label>
                             </div>
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="location" name="txtLocation"
-                                       placeholder="Location"
-                                       value="${requestScope.productDetails.location}">
+                                       placeholder="Location" maxlength="50"
+                                       value="${requestScope.productDetails.location}" required>
                                 <label for="location">Location</label>
                             </div>
 
@@ -367,7 +336,7 @@
                                 <input type="number" class="form-control" min="0" id="subQuantity"
                                        name="txtSubQuantity" placeholder="Sub Quantity (Units in Strip)"
                                        value="${requestScope.productDetails.subQuantity > 0 ? requestScope.productDetails.subQuantity : ''}"
-                                       data-strip-required="false" disabled>
+                                       data-strip-required="false" required disabled>
                                 <label for="subQuantity">Sub Quantity (Units in Strip)</label>
                             </div>
                         </div>
@@ -469,6 +438,40 @@
                     </div>
                 </form>
             </div>
+
+            <!-- Product Details View -->
+            <div id="productDetail" class="card form-card" style="display: none;">
+                <h5 class="card-title mb-3">Product Details</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Product Name:</strong> ${productDetails.productName}</p>
+                        <p><strong>Category:</strong> ${productDetails.category}</p>
+                        <p><strong>Manufacturer:</strong> ${productDetails.manufacturer}</p>
+                        <p><strong>Batch Number:</strong> ${productDetails.batchNumber}</p>
+                        <p><strong>Strength:</strong> ${productDetails.strength}</p>
+                        <p><strong>Location:</strong> ${productDetails.location}</p>
+                        <p><strong>Distributor:</strong>
+                            <c:forEach var="dist" items="${distributorList}">
+                                <c:if test="${dist.distributorId == productDetails.distributorId}">${dist.distributorName}</c:if>
+                            </c:forEach>
+                        </p>
+                        <p><strong>Sub Quantity:</strong> ${productDetails.subQuantity > 0 ? productDetails.subQuantity : 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Manufacturing Date:</strong> ${productDetails.manufacturingDate}</p>
+                        <p><strong>Expiry Date:</strong> ${productDetails.expiryDate}</p>
+                        <p><strong>Quantity:</strong> ${productDetails.quantity}</p>
+                        <p><strong>Reorder Level:</strong> ${productDetails.reorderLevel}</p>
+                        <p><strong>Purchasing Price:</strong> ${productDetails.purchasingPrice}</p>
+                        <p><strong>Selling Price:</strong> ${productDetails.sellingPrice}</p>
+                        <p><strong>Unit:</strong> ${productDetails.unit}</p>
+                        <p><strong>Created At:</strong> ${productDetails.createdAt}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="ProductServlet" class="btn btn-secondary">Back to List</a>
+                </div>
+            </div>
         </div>
     </div>
 </main>
@@ -479,7 +482,22 @@
 <!-- Shared JS -->
                 <script src="${appJs}"></script>
 
-<c:if test="${not empty requestScope.productDetails}">
+<c:if test="${requestScope.actionTypeValue == 'view'}">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var table = document.getElementById('productTable');
+            if (table) table.style.display = 'none';
+            var noBox = document.getElementById('noProductAvailable');
+            if (noBox) noBox.style.display = 'none';
+            var form = document.getElementById('productForm');
+            if (form) form.style.display = 'none';
+            var detail = document.getElementById('productDetail');
+            if (detail) detail.style.display = 'block';
+        });
+    </script>
+</c:if>
+
+<c:if test="${not empty requestScope.productDetails and requestScope.actionTypeValue != 'view'}">
     <script>
         // Ask shared module to show edit form when server provided productDetails
         document.addEventListener('DOMContentLoaded', function () {
@@ -488,8 +506,191 @@
     </script>
 </c:if>
 
+<!-- Script to handle UI state changes (search visibility and breadcrumbs) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update UI state based on current view
+    function updateUIState() {
+        var searchContainer = document.getElementById('searchContainer');
+        var productForm = document.getElementById('productForm');
+        var productDetail = document.getElementById('productDetail');
+        var productTable = document.getElementById('productTable');
+        var noProductAvailable = document.getElementById('noProductAvailable');
+
+        var productBreadcrumbLink = document.getElementById('productBreadcrumbLink');
+        var currentPageBreadcrumb = document.getElementById('currentPageBreadcrumb');
+
+        if (searchContainer && productBreadcrumbLink && currentPageBreadcrumb) {
+            // Hide search when form or detail view is shown
+            var shouldHide = (productForm && productForm.style.display === 'block') ||
+                            (productDetail && productDetail.style.display === 'block');
+
+            searchContainer.style.display = shouldHide ? 'none' : 'block';
+
+            // Clear breadcrumb classes first
+            currentPageBreadcrumb.innerHTML = '';
+
+            // Remove any dynamically added breadcrumbs (clean up)
+            var breadcrumbList = document.querySelectorAll('.breadcrumb-item');
+            breadcrumbList.forEach(function(item) {
+                if (item !== productBreadcrumbLink.parentElement.children[0] &&
+                    item !== productBreadcrumbLink &&
+                    item !== currentPageBreadcrumb) {
+                    item.remove();
+                }
+            });
+
+            // Update breadcrumbs based on current state
+            if (productDetail && productDetail.style.display === 'block') {
+                // View Product mode
+                productBreadcrumbLink.style.display = 'inline';
+                productBreadcrumbLink.classList.remove('active');
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = 'View Product';
+                console.log('Breadcrumb set to: Home > Product > View Product');
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else if (productForm && productForm.style.display === 'block') {
+                // Add/Edit mode
+                var productIdElement = document.getElementById('productId');
+                var isEdit = productIdElement && productIdElement.value && productIdElement.value.trim() !== '';
+                var newText = isEdit ? 'Edit Product' : 'Add Product';
+                productBreadcrumbLink.style.display = 'inline';
+                productBreadcrumbLink.classList.remove('active');
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = newText;
+                console.log('Breadcrumb set to: Home > Product > ' + newText);
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else if ((productTable && productTable.style.display !== 'none') ||
+                      (noProductAvailable && noProductAvailable.style.display !== 'none')) {
+                // List view mode
+                productBreadcrumbLink.style.display = 'none';
+                currentPageBreadcrumb.classList.add('active');
+                currentPageBreadcrumb.innerHTML = 'Product';
+                console.log('Breadcrumb set to: Home > Product');
+                currentPageBreadcrumb.setAttribute('aria-current', 'page');
+            } else {
+                console.log('Breadcrumb: Unknown state - no matching condition');
+            }
+        }
+    }
+
+    // Initial state update
+    updateUIState();
+
+    // Override PMS.showForm to also update UI state
+    var originalShowForm = window.PMS && window.PMS.showForm;
+    if (originalShowForm) {
+        window.PMS.showForm = function(mode) {
+            originalShowForm.call(window.PMS, mode);
+            setTimeout(updateUIState, 50); // Small delay to ensure DOM is updated
+        };
+    }
+
+    // Watch for any display changes on form/detail elements
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                updateUIState();
+            }
+        });
+    });
+
+    var productForm = document.getElementById('productForm');
+    var productDetail = document.getElementById('productDetail');
+    var productTable = document.getElementById('productTable');
+    var noProductAvailable = document.getElementById('noProductAvailable');
+
+    if (productForm) observer.observe(productForm, { attributes: true });
+    if (productDetail) observer.observe(productDetail, { attributes: true });
+    if (productTable) observer.observe(productTable, { attributes: true });
+    if (noProductAvailable) observer.observe(noProductAvailable, { attributes: true });
+});
+</script>
+
 <script src="${bootstrapJs}"></script>
 
+<script>
+function validateProductForm() {
+  let errors = [];
+
+  // ProductName: alphanumeric, max 100
+  let productName = document.getElementById('productName').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,100}$/.test(productName)) {
+    errors.push('Product Name must be alphanumeric (letters, numbers, spaces) and up to 100 characters.');
+  }
+
+  // Quantity: number
+  let quantity = parseFloat(document.getElementById('quantity').value);
+  if (!quantity || quantity <= 0 || !Number.isInteger(quantity)) {
+    errors.push('Quantity must be a positive integer.');
+  }
+
+  // SubQuantity: number if not disabled
+  let subQuantityEl = document.getElementById('subQuantity');
+  if (!subQuantityEl.disabled) {
+    let subQuantity = parseFloat(subQuantityEl.value);
+    if (!subQuantity || subQuantity <= 0 || !Number.isInteger(subQuantity)) {
+      errors.push('Sub Quantity must be a positive integer.');
+    }
+  }
+
+  // Unit: alphabets, 50
+  let unit = document.getElementById('unit').value;
+  if (!/^[a-zA-Z]{1,50}$/.test(unit)) {
+    errors.push('Unit must be alphabets and up to 50 characters.');
+  }
+
+  // Location: alphanumeric, 50
+  let location = document.getElementById('location').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,50}$/.test(location)) {
+    errors.push('Location must be alphanumeric (letters, numbers, spaces) and up to 50 characters.');
+  }
+
+  // Strength: alphanumeric, 25
+  let strength = document.getElementById('strength').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,25}$/.test(strength)) {
+    errors.push('Strength must be alphanumeric (letters, numbers, spaces) and up to 25 characters.');
+  }
+
+  // Manufacturer: alphanumeric, 50
+  let manufacturer = document.getElementById('manufacturer').value.trim();
+  if (!/^[a-zA-Z0-9 ]{1,50}$/.test(manufacturer)) {
+    errors.push('Manufacturer must be alphanumeric (letters, numbers, spaces) and up to 50 characters.');
+  }
+
+  // BatchNumber: alphanumeric, 7-30
+  let batchNumber = document.getElementById('batchNumber').value.trim();
+  if (!/^[a-zA-Z0-9]{7,30}$/.test(batchNumber)) {
+    errors.push('Batch Number must be alphanumeric (letters, numbers) between 7-30 characters.');
+  }
+
+  // ReorderLevel: number
+  let reorderLevel = parseFloat(document.getElementById('reorderLevel').value);
+  if (!reorderLevel || reorderLevel < 0 || !Number.isInteger(reorderLevel)) {
+    errors.push('Reorder Level must be a non-negative integer.');
+  }
+
+  // ManufacturingDate not after ExpiryDate
+  let mfd = new Date(document.getElementById('manufacturingDate').value);
+  let exp = new Date(document.getElementById('expiryDate').value);
+  if (mfd >= exp) {
+    errors.push('Manufacturing Date must be before Expiry Date.');
+  }
+
+  // PurchasingPrice < SellingPrice
+  let pur = parseFloat(document.getElementById('purchasingPrice').value);
+  let sell = parseFloat(document.getElementById('sellingPrice').value);
+  if (pur >= sell) {
+    errors.push('Purchasing Price must be less than Selling Price.');
+  }
+
+  if (errors.length > 0) {
+    alert(errors.join('\n'));
+    return false;
+  }
+  return true;
+}
+</script>
 
 </body>
 </html>
