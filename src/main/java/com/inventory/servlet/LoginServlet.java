@@ -62,6 +62,7 @@ public class LoginServlet extends HttpServlet {
         session.setAttribute("medicalStoreName", user.getMedicalStoreName());
         session.setAttribute("medicalStoreLogo", user.getMedicalStoreLogo());
 
-        request.getRequestDispatcher("DashboardServlet").forward(request, response);
+        response.sendRedirect("DashboardServlet");
+
     }
 }

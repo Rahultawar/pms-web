@@ -122,7 +122,6 @@ body {
     margin-left: var(--sidebar-width);
     padding: 24px;
     width: 100%;
-    position: relative;
 }
 
 .card {
@@ -311,9 +310,8 @@ button:active::after,
     padding: 1.5rem;
     max-height: none;
     overflow-y: visible;
-    position: relative;
-    z-index: 10;
 }
+
 .form-card .form-floating {
     margin-bottom: 0.875rem;
 }
@@ -420,3 +418,88 @@ button:active::after,
 .error-actions .btn {
     min-width: 160px;
 }
+
+/* Profile page specific styles */
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 3px solid #e9f5e9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image-placeholder {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 2px dashed #dee2e6;
+}
+
+/* Small profile image for display view */
+.profile-image-container-small {
+    position: relative;
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 2px solid #e9f5e9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
+}
+
+.profile-image-small {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border: none;
+    box-shadow: none;
+}
+
+.profile-image-placeholder-small {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: none;
+    border-radius: 0;
+}
+
+#profileForm {
+    display: none;
+}
+
+
+.profile-image-area {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 3px solid #e9f5e9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+    object-position: center;
+    display: block;
+}
+

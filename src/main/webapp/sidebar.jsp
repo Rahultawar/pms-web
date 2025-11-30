@@ -45,7 +45,7 @@
             </a>
         </li>
         <li>
-            <a href="#" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
+            <a href="ProfileServlet" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
         </li>
