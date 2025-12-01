@@ -84,7 +84,6 @@ if (session.getAttribute("userId") != null) {
             </a>
         </li>
         <li>
-            <a href="ProfileServlet" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
             <a href="NotificationServlet" class="nav-link ${param.activePage == 'notifications' ? 'active' : ''}" aria-current="${param.activePage == 'notifications' ? 'page' : ''}">
                 <i class="fas fa-bell me-2"></i> Notifications
                 <c:if test="${totalNotifications > 0}">
@@ -93,7 +92,7 @@ if (session.getAttribute("userId") != null) {
             </a>
         </li>
         <li>
-            <a href="#" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
+            <a href="ProfileServlet" class="nav-link ${param.activePage == 'profile' ? 'active' : ''}" aria-current="${param.activePage == 'profile' ? 'page' : ''}">
                 <i class="fas fa-user me-2"></i> Profile
             </a>
         </li>

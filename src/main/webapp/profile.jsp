@@ -92,26 +92,31 @@
 					</div>
 					<div class="card-body">
 						<div class="row align-items-center">
-							<div
-								class="col-auto d-flex align-items-center justify-content-center">
-								<div class="profile-image-area">
-									<c:choose>
-										<c:when
-											test="${not empty requestScope.userProfile.medicalStoreLogo}">
-											<img
-												src="data:image/jpeg;base64,${requestScope.userProfile.medicalStoreLogo}"
-												alt="Store Logo" class="profile-photo">
-										</c:when>
-										<c:otherwise>
-											<div class="profile-image-placeholder-small rounded-circle">
-												<i class="fas fa-store fa-lg text-muted"></i>
-											</div>
-										</c:otherwise>
-									</c:choose>
-								</div>
-							</div>
-
-							<div class="col">
+					<div
+						class="col-auto d-flex align-items-center justify-content-center">
+						<div class="profile-image-area">
+							<c:set var="defaultLogo" value="${pageContext.request.contextPath}/assets/images/logo-modern.svg" />
+							<c:choose>
+								<c:when
+									test="${not empty requestScope.userProfile.medicalStoreLogo}">
+									<img
+										src="data:image/jpeg;base64,${requestScope.userProfile.medicalStoreLogo}"
+										alt="Store Logo" class="profile-photo"
+										onerror="this.onerror=null; this.src='${defaultLogo}';">
+								</c:when>
+								<c:otherwise>
+									<img src="${defaultLogo}"
+										alt="Default Store Logo" class="profile-photo"
+										style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"
+										onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+									<div class="profile-image-placeholder-small rounded-circle d-flex align-items-center justify-content-center" 
+										style="display:none; width: 100px; height: 100px; background: #e9ecef;">
+										<i class="fas fa-store fa-2x text-muted"></i>
+									</div>
+								</c:otherwise>
+							</c:choose>
+						</div>
+					</div>							<div class="col">
 								<strong class="text-primary">${requestScope.userProfile.medicalStoreName}</strong><br>
 								<small class="text-muted">Username:
 									${requestScope.userProfile.userName}</small><br> <small
