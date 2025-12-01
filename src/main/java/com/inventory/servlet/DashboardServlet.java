@@ -85,6 +85,35 @@ public class DashboardServlet extends HttpServlet {
             String categoryDataJson = gson.toJson(categoryData);
             String paymentMethodJson = gson.toJson(paymentMethodData);
 
+            // CHECK IF AJAX REQUEST FOR TREND CHANGE
+            String isAjax = request.getParameter("ajax");
+            if ("true".equals(isAjax)) {
+                // Return JSON response for AJAX
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                
+                StringBuilder jsonResponse = new StringBuilder();
+                jsonResponse.append("{");
+                jsonResponse.append("\"labels\":[");
+                boolean first = true;
+                for (String label : salesTrendData.keySet()) {
+                    if (!first) jsonResponse.append(",");
+                    jsonResponse.append("\"").append(label).append("\"");
+                    first = false;
+                }
+                jsonResponse.append("],\"values\":[");
+                first = true;
+                for (Double value : salesTrendData.values()) {
+                    if (!first) jsonResponse.append(",");
+                    jsonResponse.append(value);
+                    first = false;
+                }
+                jsonResponse.append("]}");
+                
+                response.getWriter().write(jsonResponse.toString());
+                return;
+            }
+
             request.setAttribute("productCount", productCount);
             request.setAttribute("distributorCount", distributorCount);
             request.setAttribute("todaySaleAmount", todaySaleAmount);
