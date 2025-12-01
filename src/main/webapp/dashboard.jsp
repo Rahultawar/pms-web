@@ -219,9 +219,9 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-gradient"></i>Sales Trend</h5>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="DashboardServlet?trend=day" class="btn ${trendType == 'day' ? 'btn-success' : 'btn-outline-success'}">Day</a>
-                                            <a href="DashboardServlet?trend=month" class="btn ${trendType == 'month' ? 'btn-success' : 'btn-outline-success'}">Month</a>
-                                            <a href="DashboardServlet?trend=year" class="btn ${trendType == 'year' ? 'btn-success' : 'btn-outline-success'}">Year</a>
+                                            <button type="button" class="btn ${trendType == 'day' ? 'btn-success' : 'btn-outline-success'}" data-trend="day" onclick="event.preventDefault(); changeTrend('day');">Day</button>
+                                            <button type="button" class="btn ${trendType == 'month' ? 'btn-success' : 'btn-outline-success'}" data-trend="month" onclick="event.preventDefault(); changeTrend('month');">Month</button>
+                                            <button type="button" class="btn ${trendType == 'year' ? 'btn-success' : 'btn-outline-success'}" data-trend="year" onclick="event.preventDefault(); changeTrend('year');">Year</button>
                                         </div>
                                     </div>
                                     <canvas id="salesChart" style="max-height: 300px;"></canvas>
@@ -276,6 +276,10 @@
 
                 <script src="${appJs}"></script>
                 <script>
+                    // GLOBAL VARIABLES
+                    let salesChart = null;
+                    let currentTrend = '${trendType}';
+
                     // INIT DASHBOARD CHARTS
                     document.addEventListener('DOMContentLoaded', function () {
                         const todaySaleAmountVal = Number('${todaySaleAmount}') || 0;
@@ -333,7 +337,7 @@
                         // SALES CHART
                         const salesCtx = document.getElementById('salesChart');
                         if (hasChartJs && salesCtx) {
-                            new Chart(salesCtx, {
+                            salesChart = new Chart(salesCtx, {
                                 type: 'line',
                                 data: {
                                     labels: salesLabels.length > 0 ? salesLabels : ['No Data'],
@@ -490,6 +494,39 @@
                         animateValue('countDistributor', 0, distributorCountVal, 1200);
 
                     });
+
+                    // CHANGE TREND FUNCTION (AJAX)
+                    function changeTrend(trend) {
+                        if (currentTrend === trend) return;
+                        currentTrend = trend;
+
+                        // Update button states
+                        document.querySelectorAll('[data-trend]').forEach(btn => {
+                            if (btn.getAttribute('data-trend') === trend) {
+                                btn.classList.remove('btn-outline-success');
+                                btn.classList.add('btn-success');
+                            } else {
+                                btn.classList.remove('btn-success');
+                                btn.classList.add('btn-outline-success');
+                            }
+                        });
+
+                        // Fetch new data via AJAX
+                        fetch('DashboardServlet?trend=' + trend + '&ajax=true')
+                            .then(response => response.json())
+                            .then(data => {
+                                updateSalesChart(data);
+                            })
+                            .catch(error => console.error('Error fetching trend data:', error));
+                    }
+
+                    function updateSalesChart(data) {
+                        if (salesChart && data.labels && data.values) {
+                            salesChart.data.labels = data.labels;
+                            salesChart.data.datasets[0].data = data.values;
+                            salesChart.update();
+                        }
+                    }
 
                     function animateValue(id, start, end, duration, prefix = '') {
                         const obj = document.getElementById(id);
