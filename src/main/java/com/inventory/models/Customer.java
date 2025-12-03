@@ -4,7 +4,7 @@ public class Customer {
 
     // PROPERTIES
     private int customerId, userId;
-    private String customerName, contactNumber;
+    private String customerName, contactNumber, email, address;
     private java.sql.Timestamp createdAt;
 
     public Customer() {
@@ -50,6 +50,22 @@ public class Customer {
 
     public void setContactNumber(String contactNumber) {
         this.contactNumber = contactNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public java.sql.Timestamp getCreatedAt() {
