@@ -147,6 +147,10 @@
             formId = 'customerForm';
             tableId = 'customerTable';
             noBoxId = 'noCustomerAvailable';
+        } else if (page === 'profile') {
+            formId = 'profileForm';
+            tableId = 'profileView';
+            noBoxId = null;
         }
 
         var form = document.getElementById(formId);
@@ -156,8 +160,15 @@
         // hide add button and search
         var addBtn = document.querySelector('[data-action="show-form"][data-mode="add"]');
         if (addBtn) addBtn.style.display = 'none';
-        var searchBox = document.getElementById('searchBox');
-        if (searchBox) searchBox.style.display = 'none';
+        
+        // Only hide search container for distributor page
+        if (page === 'distributor') {
+            var searchContainer = document.getElementById('searchContainer');
+            if (searchContainer) searchContainer.style.display = 'none';
+        } else {
+            var searchBox = document.getElementById('searchBox');
+            if (searchBox) searchBox.style.display = 'none';
+        }
 
         // hide table / no-data box
         var table = document.getElementById(tableId);
@@ -200,6 +211,27 @@
         setTimeout(function () {
             form.scrollIntoView({ behavior: 'smooth' });
         }, 50);
+    }
+
+    function hideForm() {
+        var page = document.body.dataset.page || '';
+        
+        if (page === 'profile') {
+            var profileForm = document.getElementById('profileForm');
+            var profileView = document.getElementById('profileView');
+            var editBtn = document.getElementById('editProfile');
+            
+            if (profileForm) profileForm.style.display = 'none';
+            if (profileView) profileView.style.display = 'block';
+            if (editBtn) editBtn.style.display = 'inline-block';
+            
+            // Reset breadcrumb
+            var breadcrumb = document.getElementById('breadcrumbItem');
+            if (breadcrumb) {
+                var existing = breadcrumb.querySelector('.dynamic-crumb');
+                if (existing) existing.remove();
+            }
+        }
     }
 
     function bindClicks() {
@@ -371,7 +403,8 @@
     // public API
     window.PMS = {
         init: init,
-        showForm: showForm
+        showForm: showForm,
+        hideForm: hideForm
     };
 
     document.addEventListener('DOMContentLoaded', init);

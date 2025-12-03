@@ -12,13 +12,16 @@ import java.util.List;
 
 public class DistributorDAO {
 
-    // GET ALL DISTRIBUTOR METHOD
+    // GET ALL DISTRIBUTORS BY USER ID
     public List<Distributor> getAllDistributor(int userId) {
         List<Distributor> distributorList = new ArrayList<>();
-        String query = "SELECT * FROM distributor WHERE userId = ?";
+        String query = "SELECT * FROM distributor WHERE userId = ? ORDER BY distributorName ASC";
+        
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
+            
             statement.setInt(1, userId);
+            
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     Distributor distributor = new Distributor();
@@ -38,8 +41,10 @@ public class DistributorDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching distributors: " + e.getMessage(), e);
         }
+        
         return distributorList;
     }
 
@@ -60,7 +65,8 @@ public class DistributorDAO {
             statement.setInt(9, distributor.getUserId());
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error adding distributor: " + e.getMessage(), e);
         }
     }
 
@@ -74,25 +80,26 @@ public class DistributorDAO {
 
             statement.setInt(1, distributorId);
             statement.setInt(2, userId);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                distributor = new Distributor();
-                distributor.setDistributorId(resultSet.getInt("distributorId"));
-                distributor.setUserId(resultSet.getInt("userId"));
-                distributor.setDistributorName(resultSet.getString("distributorName"));
-                distributor.setContactPerson(resultSet.getString("contactPerson"));
-                distributor.setEmail(resultSet.getString("email"));
-                distributor.setPhone(resultSet.getString("phone"));
-                distributor.setAddress(resultSet.getString("address"));
-                distributor.setCity(resultSet.getString("city"));
-                distributor.setState(resultSet.getString("state"));
-                distributor.setPinCode(resultSet.getString("pinCode"));
-                distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    distributor = new Distributor();
+                    distributor.setDistributorId(resultSet.getInt("distributorId"));
+                    distributor.setUserId(resultSet.getInt("userId"));
+                    distributor.setDistributorName(resultSet.getString("distributorName"));
+                    distributor.setContactPerson(resultSet.getString("contactPerson"));
+                    distributor.setEmail(resultSet.getString("email"));
+                    distributor.setPhone(resultSet.getString("phone"));
+                    distributor.setAddress(resultSet.getString("address"));
+                    distributor.setCity(resultSet.getString("city"));
+                    distributor.setState(resultSet.getString("state"));
+                    distributor.setPinCode(resultSet.getString("pinCode"));
+                    distributor.setCreatedAt(resultSet.getTimestamp("createdAt"));
+                }
             }
-            resultSet.close();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching distributor: " + e.getMessage(), e);
         }
         return distributor;
     }

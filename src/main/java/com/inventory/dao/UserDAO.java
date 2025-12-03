@@ -2,6 +2,7 @@ package com.inventory.dao;
 
 import com.inventory.models.User;
 import com.inventory.utils.DBConnection;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,137 +13,174 @@ public class UserDAO {
 
     // REGISTER NEW USER
     public boolean registerUser(User user) {
+
         String query = "INSERT INTO user (userName, password, medicalStoreName, medicalStoreLogo) VALUES (?, ?, ?, ?)";
-        
+
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-            
+
+            // HASH PASSWORD BEFORE STORING
+            String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12));
+
             statement.setString(1, user.getUserName());
-            statement.setString(2, user.getPassword());
+            statement.setString(2, hashedPassword);
             statement.setString(3, user.getMedicalStoreName());
             statement.setString(4, user.getMedicalStoreLogo());
-            
-            int rowsAffected = statement.executeUpdate();
-            return rowsAffected > 0;
-            
+
+            return statement.executeUpdate() > 0;
+
         } catch (SQLException e) {
             throw new RuntimeException("Error registering user: " + e.getMessage(), e);
         }
     }
 
-    // AUTHENTICATE USER
+    // AUTHENTICATE USER USING BCRYPT
     public User authenticateUser(String userName, String password) {
-        String query = "SELECT * FROM user WHERE userName = ? AND password = ?";
+
+        String query = "SELECT * FROM user WHERE userName = ?";
         User user = null;
-        
+
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-            
+
             statement.setString(1, userName);
-            statement.setString(2, password);
-            ResultSet resultSet = statement.executeQuery();
-            
-            if (resultSet.next()) {
-                user = new User();
-                user.setUserId(resultSet.getInt("userId"));
-                user.setUserName(resultSet.getString("userName"));
-                user.setPassword(resultSet.getString("password"));
-                user.setMedicalStoreName(resultSet.getString("medicalStoreName"));
-                user.setMedicalStoreLogo(resultSet.getString("medicalStoreLogo"));
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+
+                // VALIDATE PASSWORD
+                if (BCrypt.checkpw(password, storedHash)) {
+                    user = new User();
+                    user.setUserId(rs.getInt("userId"));
+                    user.setUserName(rs.getString("userName"));
+                    user.setPassword(storedHash);
+                    user.setMedicalStoreName(rs.getString("medicalStoreName"));
+                    user.setMedicalStoreLogo(rs.getString("medicalStoreLogo"));
+                }
             }
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Error authenticating user: " + e.getMessage(), e);
         }
-        
-        return user;
-    }
 
-    // GET USER BY USERNAME
-    public User getUserByUsername(String userName) {
-        String query = "SELECT * FROM user WHERE userName = ?";
-        User user = null;
-        
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            
-            statement.setString(1, userName);
-            ResultSet resultSet = statement.executeQuery();
-            
-            if (resultSet.next()) {
-                user = new User();
-                user.setUserId(resultSet.getInt("userId"));
-                user.setUserName(resultSet.getString("userName"));
-                user.setPassword(resultSet.getString("password"));
-                user.setMedicalStoreName(resultSet.getString("medicalStoreName"));
-                user.setMedicalStoreLogo(resultSet.getString("medicalStoreLogo"));
-            }
-            
-        } catch (SQLException e) {
-            throw new RuntimeException("Error getting user by username: " + e.getMessage(), e);
-        }
-        
-        return user;
-    }
-
-    // GET USER BY ID
-    public User getUserById(int userId) {
-        String query = "SELECT * FROM user WHERE userId = ?";
-        User user = null;
-        
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            
-            statement.setInt(1, userId);
-            ResultSet resultSet = statement.executeQuery();
-            
-            if (resultSet.next()) {
-                user = new User();
-                user.setUserId(resultSet.getInt("userId"));
-                user.setUserName(resultSet.getString("userName"));
-                user.setPassword(resultSet.getString("password"));
-                user.setMedicalStoreName(resultSet.getString("medicalStoreName"));
-                user.setMedicalStoreLogo(resultSet.getString("medicalStoreLogo"));
-            }
-            
-        } catch (SQLException e) {
-            throw new RuntimeException("Error getting user by ID: " + e.getMessage(), e);
-        }
-        
         return user;
     }
 
     // CHECK IF USERNAME EXISTS
     public boolean usernameExists(String userName) {
+
         String query = "SELECT COUNT(*) FROM user WHERE userName = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, userName);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking username existence: " + e.getMessage(), e);
+        }
+
+        return false;
+    }
+
+    // GET USER BY USERNAME
+    public User getUserByUsername(String userName) {
+
+        String query = "SELECT * FROM user WHERE userName = ?";
+        User user = null;
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, userName);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setUserId(rs.getInt("userId"));
+                user.setUserName(rs.getString("userName"));
+                user.setPassword(rs.getString("password"));
+                user.setMedicalStoreName(rs.getString("medicalStoreName"));
+                user.setMedicalStoreLogo(rs.getString("medicalStoreLogo"));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting user by username: " + e.getMessage(), e);
+        }
+        return user;
+    }
+
+    // GET USER BY ID
+    public User getUserById(int userId) {
+
+        String query = "SELECT * FROM user WHERE userId = ?";
+        User user = null;
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, userId);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                user = new User();
+                user.setUserId(rs.getInt("userId"));
+                user.setUserName(rs.getString("userName"));
+                user.setPassword(rs.getString("password"));
+                user.setMedicalStoreName(rs.getString("medicalStoreName"));
+                user.setMedicalStoreLogo(rs.getString("medicalStoreLogo"));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting user by ID: " + e.getMessage(), e);
+        }
+
+        return user;
+    }
+
+    // GET USER ID BY USERNAME
+    public int getUserIdByUserName(String username) {
+
+        String query = "SELECT userId FROM user WHERE userName = ?";
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, username);
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("userId");
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching userId: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+    
+    // UPDATE USER PROFILE
+    public boolean updateUser(User user) {
+        String query = "UPDATE user SET medicalStoreName = ?, medicalStoreLogo = ?, password = ? WHERE userId = ?";
         
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             
-            statement.setString(1, userName);
-            ResultSet resultSet = statement.executeQuery();
+            statement.setString(1, user.getMedicalStoreName());
+            statement.setString(2, user.getMedicalStoreLogo());
+            statement.setString(3, user.getPassword());
+            statement.setInt(4, user.getUserId());
             
-            if (resultSet.next()) {
-                return resultSet.getInt(1) > 0;
-            }
+            return statement.executeUpdate() > 0;
             
         } catch (SQLException e) {
-            throw new RuntimeException("Error checking username existence: " + e.getMessage(), e);
+            throw new RuntimeException("Error updating user: " + e.getMessage(), e);
         }
-        
-        return false;
-    }
-
-    public int getUserIdByUserName(String username){
-        int userId = 0;
-        try(Connection connection = DBConnection.getConnection()){
-            PreparedStatement statement = connection.prepareStatement("SELECT userId FROM user WHERE userName = ?");
-            statement.setString(1, username);
-            ResultSet resultSet = statement.getResultSet();
-            userId = resultSet.getInt(1);
-        }catch (Exception e){
-            
-        }
-        return (userId != 0) ? userId : 0;
     }
 }

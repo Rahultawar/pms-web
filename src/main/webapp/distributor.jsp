@@ -1,225 +1,353 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-        <%@ page isELIgnored="false" %>
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ page isELIgnored="false"%>
 
-            <c:if test="${empty sessionScope.username}">
-                <c:redirect url="index.jsp" />
-                <c:remove var="_stop" />
-            </c:if>
+<c:if test="${empty sessionScope.username}">
+	<c:redirect url="index.jsp" />
+	<c:remove var="_stop" />
+</c:if>
 
-            <c:if test="${requestScope.distributorList == null}">
-                <c:redirect url="DistributorServlet" />
-            </c:if>
+<c:if test="${requestScope.distributorList == null}">
+	<c:redirect url="DistributorServlet" />
+</c:if>
 
-            <c:url var="dashboardUrl" value="/DashboardServlet" />
+<c:url var="dashboardUrl" value="/DashboardServlet" />
 
-            <!doctype html>
-            <html lang="en">
+<!doctype html>
+<html lang="en">
 
-            <head>
-                <meta charset="UTF-8">
-                <title>Distributor</title>
+<head>
+<meta charset="UTF-8">
+<title>Distributor</title>
 
-                <c:url var="bootstrapCss" value="/assets/css/bootstrap.min.css" />
-                <c:url var="fontAwesomeCss" value="/assets/css/fontawesome.min.css" />
-                <c:url var="themeCss" value="/assets/css/theme.css" />
-                <c:url var="bootstrapJs" value="/assets/js/bootstrap.bundle.min.js" />
-                <c:url var="appJs" value="/assets/js/app.js" />
-                <c:url var="interRegular" value="/assets/fonts/inter/Inter-Regular.woff2" />
-                <link rel="stylesheet" href="${bootstrapCss}" />
-                <link rel="stylesheet" href="${fontAwesomeCss}" />
-                <link rel="stylesheet" href="${themeCss}" />
-                <link rel="preload" href="${interRegular}" as="font" type="font/woff2" crossorigin>
-                <c:url var="styleUrl" value="/assets/css/style.css" />
-                <link rel="stylesheet" href="${styleUrl}" />
-                <c:url var="enhancedStyleUrl" value="/assets/css/enhanced-ui.css" />
-                <link rel="stylesheet" href="${enhancedStyleUrl}" />
-                <c:url var="noAnimationsUrl" value="/assets/css/no-animations.css"/>
-                <link rel="stylesheet" href="${noAnimationsUrl}"/>
-                <c:url var="iconUrl" value="/assets/images/logo-modern.svg" />
-                <c:url var="faviconUrl" value="/assets/images/favicon.svg" />
-                <link rel="icon" href="${faviconUrl}" type="image/svg+xml">
-                <c:url var="profilePicUrl" value="/assets/images/ProfilePic.jpg" />
-                <c:url var="logoutUrl" value="/LogoutServlet" />
+<c:url var="bootstrapCss" value="/assets/css/bootstrap.min.css" />
+<c:url var="fontAwesomeCss" value="/assets/css/fontawesome.min.css" />
+<c:url var="themeCss" value="/assets/css/theme.css" />
+<c:url var="bootstrapJs" value="/assets/js/bootstrap.bundle.min.js" />
+<c:url var="appJs" value="/assets/js/app.js" />
+<c:url var="interRegular"
+	value="/assets/fonts/inter/Inter-Regular.woff2" />
+<link rel="stylesheet" href="${bootstrapCss}" />
+<link rel="stylesheet" href="${fontAwesomeCss}" />
+<link rel="stylesheet" href="${themeCss}" />
+<link rel="preload" href="${interRegular}" as="font" type="font/woff2"
+	crossorigin>
+<c:url var="styleUrl" value="/assets/css/style.css" />
+<link rel="stylesheet" href="${styleUrl}" />
+<c:url var="enhancedStyleUrl" value="/assets/css/enhanced-ui.css" />
+<link rel="stylesheet" href="${enhancedStyleUrl}" />
+<c:url var="noAnimationsUrl" value="/assets/css/no-animations.css" />
+<link rel="stylesheet" href="${noAnimationsUrl}" />
+<c:url var="iconUrl" value="/assets/images/logo-modern.svg" />
+<c:url var="faviconUrl" value="/assets/images/favicon.svg" />
+<link rel="icon" href="${faviconUrl}" type="image/svg+xml">
+<c:url var="profilePicUrl" value="/assets/images/ProfilePic.jpg" />
+<c:url var="logoutUrl" value="/LogoutServlet" />
 
-            </head>
+</head>
 
 <body data-page="distributor">
 
-                <div class="app-shell">
-                <!-- SIDEBAR -->
-                <jsp:include page="sidebar.jsp">
-                    <jsp:param name="activePage" value="distributor" />
-                </jsp:include>
-                <!-- /SIDEBAR -->
+	<div class="app-shell">
+		<!-- SIDEBAR -->
+		<jsp:include page="sidebar.jsp">
+			<jsp:param name="activePage" value="distributor" />
+		</jsp:include>
+		<!-- /SIDEBAR -->
 
-                <!-- MAIN CONTENT -->
-                <main id="content-wrapper" class="flex-fill">
-                    <div class="container-fluid">
-                        <div class="row align-items-center mb-3">
-                            <div class="col-md-8 col-12 mb-2 mb-md-0">
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb mb-0" id="breadcrumbItem">
-                                        <li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Distributor</li>
-                                    </ol>
-                                </nav>
-                            </div>
-                            <div class="col-md-4 col-12 text-md-end">
-                                <button class="btn btn-outline-success" id="addDistributor" data-action="show-form"
-                                    data-mode="add">
-                                    <i class="fas fa-truck me-2"></i>Add Distributor
-                                </button>
-                            </div>
-                        </div>
+		<!-- MAIN CONTENT -->
+		<main id="content-wrapper" class="flex-fill">
+			<div class="container-fluid">
+				<div class="row align-items-center mb-3">
+					<div class="col-md-6 col-12 mb-2 mb-md-0">
+						<nav aria-label="breadcrumb">
+							<ol class="breadcrumb mb-0" id="breadcrumbItem">
+								<li class="breadcrumb-item"><a href="DashboardServlet">Home</a></li>
+								<li class="breadcrumb-item active" aria-current="page">Distributor</li>
+							</ol>
+						</nav>
+					</div>
 
-                        <div>
-                            <c:choose>
-                                <c:when test="${empty distributorList}">
-                                    <div id="noDistributorAvailable" class="empty-state">
-                                        <h2 class="empty-state__title">No distributors available</h2>
-                                        <p class="empty-state__subtitle">Add your partner details to keep supplier
-                                            information close at hand.</p>
-                                        <button class="btn btn-success" data-action="show-form" data-mode="add">
-                                            <i class="fas fa-truck me-2"></i>Add Distributor
-                                        </button>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div id="distributorTable" class="card table-card">
-                                        <div class="table-responsive">
-                                            <table class="table table-hover align-middle">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>Distributor Name</th>
-                                                        <th>Contact Person</th>
-                                                        <th>Contact Number</th>
-                                                        <th>Address</th>
-                                                        <th>Edit</th>
-                                                        <th>Delete</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <c:forEach var="distributor" items="${distributorList}">
-                                                        <tr>
-                                                            <td>${distributor.distributorName}</td>
-                                                            <td>${distributor.contactPerson}</td>
-                                                            <td>${distributor.phone}</td>
-                                                            <td>${distributor.address}</td>
-                                                            <td><a href="DistributorServlet?editId=${distributor.distributorId}"
-                                                                    title="Edit"><i class="fas fa-edit"></i></a></td>
-                                                            <td><a href="DistributorServlet?deleteId=${distributor.distributorId}"
-                                                                    data-action="delete"
-                                                                    data-confirm="Are you sure you want to delete this distributor?"
-                                                                    title="Delete"><i class="fas fa-trash-alt"></i></a>
-                                                            </td>
-                                                        </tr>
-                                                    </c:forEach>
-                                                </tbody>
-                                            </table>
-                                        </div>
 
-                                        <div class="pagination-wrapper card-footer bg-transparent">
-                                            <c:if test="${noOfPages > 1}">
-                                                <c:forEach begin="1" end="${noOfPages}" var="i">
-                                                    <c:choose>
-                                                        <c:when test="${i == currentPage}">
-                                                            <span class="btn btn-success btn-sm">${i}</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <c:url var="pageUrl" value="DistributorServlet">
-                                                                <c:param name="page" value="${i}" />
-                                                            </c:url>
-                                                            <a href="${pageUrl}"
-                                                                class="btn btn-outline-success btn-sm">${i}</a>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </c:forEach>
-                                            </c:if>
-                                        </div>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
+					<!-- ERROR MESSAGE -->
+					<c:if test="${not empty requestScope['success-message']}">
+						<div class="alert alert-success alert-dismissible fade show"
+							role="alert">
+							<i class="fas fa-check-circle me-2"></i>${requestScope['success-message']}
+							<button type="button" class="btn-close" data-bs-dismiss="alert"
+								aria-label="Close"></button>
+						</div>
+					</c:if>
 
-                            <div id="distributorForm" class="card form-card">
-                                <h5 class="card-title mb-3" id="formTitle">Add New Distributor</h5>
-                                <form action="DistributorServlet" method="post">
-                                    <input type="hidden" id="distributorId" name="distributorId"
-                                        value="${requestScope.distributorDetails.distributorId}">
-                                    <input type="hidden" name="actionType"
-                                        value="${requestScope.distributorDetails != null ? 'update' : 'add'}">
+					<div class="col-md-3 col-12 mb-2 mb-md-0" id="searchContainer">
+						<div class="input-group">
+							<input type="search" class="form-control" id="searchBox"
+								placeholder="Search distributors..."> <span
+								class="input-group-text"><i class="fas fa-search"></i></span>
+						</div>
+					</div>
+					<div class="col-md-3 col-12 text-end">
+						<button class="btn btn-outline-success" id="addDistributor"
+							data-action="show-form" data-mode="add">
+							<i class="fas fa-truck me-2"></i>Add Distributor
+						</button>
+					</div>
+				</div>
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="distributorName"
-                                                    name="txtDistributorName" placeholder="Distributor Name"
-                                                    value="${requestScope.distributorDetails.distributorName}" required>
-                                                <label for="distributorName">Distributor Name</label>
-                                            </div>
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="contactPerson"
-                                                    name="txtContactPerson" placeholder="Contact Person"
-                                                    value="${requestScope.distributorDetails.contactPerson}">
-                                                <label for="contactPerson">Contact Person</label>
-                                            </div>
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="phone"
-                                                    name="txtPhone" placeholder="Phone Number"
-                                                    value="${requestScope.distributorDetails.phone}" required 
-                                                    maxlength="10" pattern="[0-9]{10}">
-                                                <label for="phone">Phone Number</label>
-                                            </div>
-                                            <div class="form-floating mb-3">
-                                                <input type="email" class="form-control" id="email" name="txtEmail"
-                                                    placeholder="Email Address"
-                                                    value="${requestScope.distributorDetails.email}">
-                                                <label for="email">Email Address</label>
-                                            </div>
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="address" name="txtAddress"
-                                                    placeholder="Address"
-                                                    value="${requestScope.distributorDetails.address}" required>
-                                                <label for="address">Address</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-floating mb-3"><input type="text" class="form-control"
-                                                    id="city" name="txtCity" placeholder="City"
-                                                    value="${requestScope.distributorDetails.city}"><label
-                                                    for="city">City</label></div>
-                                            <div class="form-floating mb-3"><input type="text" class="form-control"
-                                                    id="state" name="txtState" placeholder="State"
-                                                    value="${requestScope.distributorDetails.state}"><label
-                                                    for="state">State</label></div>
-                                            <div class="form-floating mb-3"><input type="text" class="form-control"
-                                                    id="pinCode" name="txtPinCode" placeholder="Pin Code"
-                                                    value="${requestScope.distributorDetails.pinCode}"><label
-                                                    for="pinCode">Pin Code</label></div>
-                                        </div>
-                                    </div>
+				<div>
+					<c:choose>
+						<c:when test="${empty distributorList}">
+							<div id="noDistributorAvailable" class="empty-state">
+								<h2 class="empty-state__title">No distributors available</h2>
+								<p class="empty-state__subtitle">Add your partner details to
+									keep supplier information close at hand.</p>
+								<button class="btn btn-success" data-action="show-form"
+									data-mode="add">
+									<i class="fas fa-truck me-2"></i>Add Distributor
+								</button>
+							</div>
+						</c:when>
+						<c:otherwise>
+							<div id="distributorTable" class="card table-card">
+								<div class="table-responsive">
+									<table class="table table-hover align-middle">
+										<thead class="table-light">
+											<tr>
+												<th>Distributor Name</th>
+												<th>Contact Person</th>
+												<th>Contact Number</th>
+												<th>Address</th>
+												<th>Edit</th>
+												<th>Delete</th>
+											</tr>
+										</thead>
+										<tbody>
+											<c:forEach var="distributor" items="${distributorList}">
+												<tr>
+													<td>${distributor.distributorName}</td>
+													<td>${distributor.contactPerson}</td>
+													<td>${distributor.phone}</td>
+													<td>${distributor.address}</td>
+													<td><a
+														href="DistributorServlet?editId=${distributor.distributorId}"
+														title="Edit"><i class="fas fa-edit"></i></a></td>
+													<td><a
+														href="DistributorServlet?deleteId=${distributor.distributorId}"
+														data-action="delete"
+														data-confirm="Are you sure you want to delete this distributor?"
+														title="Delete"><i class="fas fa-trash-alt"></i></a></td>
+												</tr>
+											</c:forEach>
+										</tbody>
+									</table>
+								</div>
 
-                                    <div class="d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-success me-2">Save Distributor</button>
-                                        <button type="reset" class="btn btn-outline-secondary" id="btnReset">Reset</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-                <!-- /MAIN CONTENT -->
+								<div class="pagination-wrapper card-footer bg-transparent">
+									<c:if test="${noOfPages > 1}">
+										<c:forEach begin="1" end="${noOfPages}" var="i">
+											<c:choose>
+												<c:when test="${i == currentPage}">
+													<span class="btn btn-success btn-sm">${i}</span>
+												</c:when>
+												<c:otherwise>
+													<c:url var="pageUrl" value="DistributorServlet">
+														<c:param name="page" value="${i}" />
+													</c:url>
+													<a href="${pageUrl}" class="btn btn-outline-success btn-sm">${i}</a>
+												</c:otherwise>
+											</c:choose>
+										</c:forEach>
+									</c:if>
+								</div>
+							</div>
+						</c:otherwise>
+					</c:choose>
 
-                </div>
+					<div id="distributorForm" class="card form-card">
+						<h5 class="card-title mb-3" id="formTitle">Add New
+							Distributor</h5>
+						<form action="DistributorServlet" method="post">
+							<input type="hidden" id="distributorId" name="distributorId"
+								value="${requestScope.distributorDetails.distributorId}">
+							<input type="hidden" name="actionType"
+								value="${requestScope.distributorDetails != null ? 'update' : 'add'}">
 
-                <!-- Shared JS -->
-                <script src="${appJs}"></script>
-                <c:if test="${not empty requestScope.distributorDetails}">
-                    <script>document.addEventListener('DOMContentLoaded', function () {
+							<div class="row">
+								<div class="col-md-6">
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="distributorName"
+											name="txtDistributorName" placeholder="Distributor Name"
+											value="${requestScope.distributorDetails.distributorName}"
+											required> <label for="distributorName">Distributor
+											Name</label>
+										<div class="invalid-feedback">Please Enter Valid Name</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="contactPerson"
+											name="txtContactPerson" placeholder="Contact Person"
+											value="${requestScope.distributorDetails.contactPerson}">
+										<label for="contactPerson">Contact Person</label>
+										<div class="invalid-feedback">Please Enter Valid Input</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="phone"
+											name="txtPhone" placeholder="Phone Number"
+											value="${requestScope.distributorDetails.phone}" required
+											maxlength="10" pattern="[0-9]{10}"> <label
+											for="phone">Phone Number</label>
+										<div class="invalid-feedback">Please Enter Valid Number</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="email" class="form-control" id="email"
+											name="txtEmail" placeholder="Email Address"
+											value="${requestScope.distributorDetails.email}"> <label
+											for="email">Email Address</label>
+										<div class="invalid-feedback">Please Enter Valid Email</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="address"
+											name="txtAddress" placeholder="Address"
+											value="${requestScope.distributorDetails.address}" required>
+										<label for="address">Address</label>
+										<div class="invalid-feedback">Please Enter Valid Address</div>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="city"
+											name="txtCity" placeholder="City"
+											value="${requestScope.distributorDetails.city}"><label
+											for="city">City</label>
+										<div class="invalid-feedback">Please Enter Valid City</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="state"
+											name="txtState" placeholder="State"
+											value="${requestScope.distributorDetails.state}"><label
+											for="state">State</label>
+										<div class="invalid-feedback">Please Enter Valid State</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="pinCode"
+											name="txtPinCode" placeholder="Pin Code"
+											value="${requestScope.distributorDetails.pinCode}"><label
+											for="pinCode">Pin Code</label>
+										<div class="invalid-feedback">Please Enter Valid Pincode</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="d-flex justify-content-end">
+								<button type="submit" id="saveBtn" class="btn btn-success me-2"
+									disabled>Save Distributor</button>
+								<button type="reset" class="btn btn-outline-secondary"
+									id="btnReset">Reset</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</main>
+		<!-- /MAIN CONTENT -->
+
+	</div>
+
+	<!-- Shared JS -->
+	<script src="${appJs}"></script>
+	<c:if test="${not empty requestScope.distributorDetails}">
+		<script>document.addEventListener('DOMContentLoaded', function () {
                             PMS.showForm('edit');
                         });</script>
-                </c:if>
-                <script src="${bootstrapJs}"></script>
-            </body>
+	</c:if>
 
-            </html>
+	<!-- JS FOR SEARCH BAR  -->
+	<script>
+	
+		document.addEventListener("DOMContentLoaded", () => {
+			
+    	const searchInput = document.getElementById("searchDistributor");
+    	const tableRows = document.querySelectorAll("#distributorTable tbody tr");
+
+	    searchInput.addEventListener("keyup", () => {
+	        let filterValue = searchInput.value.toLowerCase();
+	
+	        tableRows.forEach(row => {
+	            let rowText = row.innerText.toLowerCase();
+	            if (rowText.includes(filterValue)) {
+	                row.style.display = "";
+	            } else {
+	                row.style.display = "none";
+	            }
+	        });
+	    });
+	});
+	</script>
+
+	<!-- ADD DISTRIBUTOR VALIDATION JS -->
+	<script>
+	document.addEventListener("DOMContentLoaded", () => {
+
+	    const distributorName = document.getElementById("distributorName");
+	    const contactPerson = document.getElementById("contactPerson");
+	    const phone = document.getElementById("phone");
+	    const email = document.getElementById("email");
+	    const address = document.getElementById("address");
+	    const city = document.getElementById("city");
+	    const state = document.getElementById("state");
+	    const pinCode = document.getElementById("pinCode");
+
+	    const saveBtn = document.getElementById("saveBtn"); 
+
+	    // Patterns
+	    const namePattern = /^[A-Za-z0-9 ]{1,50}$/;
+	    const alphaPattern = /^[A-Za-z ]{1,50}$/;
+	    const phonePattern = /^[0-9]{10}$/;
+	    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	    const addressPattern = /^[A-Za-z0-9 ]{1,50}$/;
+	    const cityPattern = /^[A-Za-z ]{1,30}$/;
+	    const statePattern = /^[A-Za-z ]{1,30}$/;
+	    const pinPattern = /^[0-9]{6}$/;
+
+	    function validate(input, pattern) {
+	        if (!pattern.test(input.value.trim())) {
+	            input.classList.add("is-invalid");
+	            input.classList.remove("is-valid");
+	            return false;
+	        } else {
+	            input.classList.remove("is-invalid");
+	            input.classList.add("is-valid");
+	            return true;
+	        }
+	    }
+
+	    function checkForm() { 
+	        if (
+	            validate(distributorName, namePattern) &&
+	            validate(contactPerson, alphaPattern) &&
+	            validate(phone, phonePattern) &&
+	            validate(email, emailPattern) &&
+	            validate(address, addressPattern) &&
+	            validate(city, cityPattern) &&
+	            validate(state, statePattern) &&
+	            validate(pinCode, pinPattern)
+	        ) {
+	            saveBtn.disabled = false;
+	        } else {
+	            saveBtn.disabled = true;
+	        }
+	    }
+
+	   
+	    [distributorName, contactPerson, phone, email, address, city, state, pinCode].forEach(field => {
+	        field.addEventListener("input", checkForm);
+	    });
+
+	    checkForm();
+	});
+
+	</script>
+
+	<script src="${bootstrapJs}"></script>
+</body>
+
+</html>

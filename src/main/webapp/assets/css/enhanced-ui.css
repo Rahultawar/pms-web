@@ -13,6 +13,9 @@
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
 }
 
 .stat-card::before {
@@ -40,6 +43,22 @@
 
 .stat-card-red::before {
     background: #dc3545;
+}
+
+.stat-card-purple::before {
+    background: #6f42c1;
+}
+
+.stat-card-warning::before {
+    background: #ffc107;
+}
+
+.stat-card-info::before {
+    background: #17a2b8;
+}
+
+.stat-card-teal::before {
+    background: #20c997;
 }
 
 .stat-card:hover {
@@ -70,6 +89,22 @@
 
 .stat-card-red .stat-icon-wrapper {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-card-purple .stat-icon-wrapper {
+    background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
+}
+
+.stat-card-warning .stat-icon-wrapper {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card-info .stat-icon-wrapper {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card-teal .stat-icon-wrapper {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
 
 .stat-icon {
@@ -131,6 +166,11 @@
 .badge-danger {
     background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
+}
+
+.badge-primary {
+    background: rgba(106, 90, 205, 0.1);
+    color: #6a5acd;
 }
 
 /* ========================================

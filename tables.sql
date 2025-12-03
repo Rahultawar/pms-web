@@ -50,9 +50,6 @@ CREATE TABLE `customer` (
   ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- If customer table already exists, run this to add createdAt column:
--- ALTER TABLE customer ADD COLUMN createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
 CREATE TABLE `distributor` (
   `distributorId` INT NOT NULL AUTO_INCREMENT,
   `distributorName` VARCHAR(255) NOT NULL,
@@ -71,4 +68,45 @@ CREATE TABLE `distributor` (
   FOREIGN KEY (userId) REFERENCES user(userId)
   ON DELETE CASCADE
   ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `user_notifications` (
+  `notificationId` INT NOT NULL AUTO_INCREMENT,
+  `userId` INT NOT NULL,
+  `productId` INT NOT NULL,
+  `notificationType` ENUM('low_stock', 'expiry') NOT NULL,
+  `isRead` TINYINT(1) DEFAULT 0,
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`notificationId`),
+  UNIQUE KEY `ux_user_notification` (`userId`, `productId`, `notificationType`),
+  KEY `idx_user_notifications_user` (`userId`),
+  KEY `idx_user_notifications_product` (`productId`),
+  CONSTRAINT `fk_user_notifications_user` FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_user_notifications_product` FOREIGN KEY (`productId`) REFERENCES `product`(`productId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `sale` (
+  `saleId` INT NOT NULL AUTO_INCREMENT,
+  `customerId` INT DEFAULT NULL,
+  `userId` INT NOT NULL,
+  `productId` INT NOT NULL,
+  `distributorId` INT NOT NULL,
+  `quantity` INT NOT NULL,
+  `subQuantity` INT DEFAULT NULL,
+  `paymentMethod` ENUM('CASH', 'CARD', 'UPI') NOT NULL,
+  `saleDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `discount` DECIMAL(13,2) DEFAULT 0.00,
+  `totalAmount` DECIMAL(13,2) NOT NULL,
+  `amountGivenByCustomer` DECIMAL(13,2) DEFAULT 0.00,
+  `status` ENUM('paid', 'pending') NOT NULL DEFAULT 'pending',
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`saleId`),
+  KEY `idx_sale_user` (`userId`),
+  KEY `idx_sale_product` (`productId`),
+  KEY `idx_sale_distributor` (`distributorId`),
+  KEY `idx_sale_customer` (`customerId`),
+  CONSTRAINT `fk_sale_user` FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_product` FOREIGN KEY (`productId`) REFERENCES `product`(`productId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_distributor` FOREIGN KEY (`distributorId`) REFERENCES `distributor`(`distributorId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_sale_customer` FOREIGN KEY (`customerId`) REFERENCES `customer`(`customerId`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

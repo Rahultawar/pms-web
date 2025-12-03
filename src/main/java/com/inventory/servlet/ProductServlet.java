@@ -18,6 +18,7 @@ import java.util.List;
 @WebServlet("/ProductServlet")
 public class ProductServlet extends HttpServlet {
     ProductDAO productDAO = new ProductDAO();
+    DistributorDAO distributorDAO = new DistributorDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -81,9 +82,9 @@ public class ProductServlet extends HttpServlet {
                 e.printStackTrace();
                 String errorMessage = getCustomErrorMessage(e);
                 request.setAttribute("errorMessage", errorMessage);
-                request.setAttribute("productDetails", product); // Keep form data for adding
+                request.setAttribute("productDetails", product); // KEEP FORM DATA FOR ADDING
                 request.setAttribute("actionTypeValue", "add");
-                // Load required attributes for JSP
+                // LOAD REQUIRED ATTRIBUTES FOR JSP
                 loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
                 dispatcher.forward(request, response);
@@ -142,8 +143,8 @@ public class ProductServlet extends HttpServlet {
                 e.printStackTrace();
                 String errorMessage = getCustomErrorMessage(e);
                 request.setAttribute("errorMessage", errorMessage);
-                request.setAttribute("productDetails", product); // Keep form data for editing
-                // Load required attributes for JSP
+                request.setAttribute("productDetails", product); // KEEP FORM DATA FOR EDITING
+                // LOAD REQUIRED ATTRIBUTES FOR JSP
                 loadAttributesForJSP(request, null, null);
                 RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
                 dispatcher.forward(request, response);
@@ -154,7 +155,7 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         if (userId == null) {
             response.sendRedirect("index.jsp");
@@ -168,14 +169,14 @@ public class ProductServlet extends HttpServlet {
         // IF EDITING A PRODUCT
         if (idParam != null && !idParam.isEmpty()) {
             int prodId = Integer.parseInt(idParam);
-            Product product = productDAO.getProductById(prodId, userId);
+            Product product = productDAO.getProductByIdAndUserId(prodId, userId);
             request.setAttribute("productDetails", product);
         }
 
         // IF VIEWING PRODUCT DETAILS
         if (viewIdParam != null && !viewIdParam.isEmpty()) {
             int prodId = Integer.parseInt(viewIdParam);
-            Product product = productDAO.getProductById(prodId, userId);
+            Product product = productDAO.getProductByIdAndUserId(prodId, userId);
             request.setAttribute("productDetails", product);
             request.setAttribute("actionTypeValue", "view");
         }
@@ -205,18 +206,24 @@ public class ProductServlet extends HttpServlet {
         request.setAttribute("currentPage", page);
 
         // PROVIDE DISTRIBUTOR LIST FOR SELECT DROPDOWN
-        DistributorDAO distributorDAO = new DistributorDAO();
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
+
+        // FETCH NOTIFICATION COUNTS FOR SIDEBAR
+        int lowStockCount = productDAO.getLowStockProducts(userId).size();
+        int expiringCount = productDAO.getExpiringProducts(userId).size();
+        int totalNotifications = lowStockCount + expiringCount;
+        request.setAttribute("totalNotifications", totalNotifications);
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("product.jsp");
         dispatcher.forward(request, response);
     }
 
     private void loadAttributesForJSP(HttpServletRequest request, String pageParam, String deleteIdParam) {
-        // Get userId from session
+        // GET USERID FROM SESSION
         Integer userId = (Integer) request.getSession().getAttribute("userId");
-        if (userId == null) return; // Though we already check in doGet
+        if (userId == null) return; // THOUGH WE ALREADY CHECK IN DOGET
 
-        // PAGINATION LOGIC - Default to page 1 if not provided
+        // PAGINATION LOGIC - DEFAULT TO PAGE 1 IF NOT PROVIDED
         int page = 1;
         int recordsPerPage = 5;
         if (pageParam != null) {
@@ -230,25 +237,24 @@ public class ProductServlet extends HttpServlet {
         int totalRecords = productDAO.countProduct(userId);
         int totalPages = (int) Math.ceil(totalRecords * 1.0 / recordsPerPage);
 
-        // Delete if requested
+        // DELETE IF REQUESTED
         if (deleteIdParam != null && !deleteIdParam.isEmpty()) {
             try {
                 int deleteId = Integer.parseInt(deleteIdParam);
                 productDAO.deleteProduct(deleteId, userId);
             } catch (NumberFormatException e) {
-                // Ignore invalid deleteId
+                // IGNORE INVALID DELETEID
             }
         }
 
+        request.setAttribute("productList", productList);
         request.setAttribute("productList", productList);
         request.setAttribute("noOfPages", totalPages);
         request.setAttribute("currentPage", page);
 
         // PROVIDE DISTRIBUTOR LIST FOR SELECT DROPDOWN
-        DistributorDAO distributorDAO = new DistributorDAO();
         request.setAttribute("distributorList", distributorDAO.getAllDistributor(userId));
     }
-
     private String getCustomErrorMessage(Exception e) {
         String message = e.getMessage();
         if (message == null) message = "";

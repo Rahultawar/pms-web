@@ -1,9 +1,9 @@
 package com.inventory.servlet;
 
 import com.inventory.dao.ProductDAO;
+import com.google.gson.Gson;
 import com.inventory.dao.DistributorDAO;
 import com.inventory.dao.SaleDAO;
-import com.inventory.dao.UserDAO;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Map;
 
 @WebServlet("/DashboardServlet")
 public class DashboardServlet extends HttpServlet {
@@ -21,30 +22,118 @@ public class DashboardServlet extends HttpServlet {
             throws ServletException, IOException {
         // SESSION VALIDATION
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("username") == null) {
+        if (session == null || session.getAttribute("user") == null) {
             response.sendRedirect("index.jsp");
             return;
         }
 
-        // OBJECTS OF DAOs
-        ProductDAO productDAO = new ProductDAO();
-        DistributorDAO distributorDAO = new DistributorDAO();
-        UserDAO userDAO = new UserDAO();
-        SaleDAO saleDAO = new SaleDAO();
+        try {
+            // OBJECTS OF DAOs
+            ProductDAO productDAO = new ProductDAO();
+            DistributorDAO distributorDAO = new DistributorDAO();
+            SaleDAO saleDAO = new SaleDAO();
 
-        int userId = (Integer) session.getAttribute("userId");
+            Integer userId = (Integer) session.getAttribute("userId");
+            if (userId == null) {
+                response.sendRedirect("index.jsp");
+                return;
+            }
 
-        // FETCH COUNTS
-        int saleCount = saleDAO.countSale();
-        int productCount = productDAO.countProduct(userId);
-        int distributorCount = distributorDAO.countDistributor(userId);
+            // FETCH COUNTS AND AMOUNTS
+            double todaySaleAmount = saleDAO.getTodaySalesAmount(userId);
+            double monthlySaleAmount = saleDAO.getMonthlySalesAmount(userId);
+            double yearlySaleAmount = saleDAO.getYearlySalesAmount(userId);
+            double pendingPaymentsAmount = saleDAO.getPendingPaymentsAmount(userId);
+            int pendingPaymentsCount = saleDAO.getPendingPaymentsCount(userId);
+            int productCount = productDAO.countProduct(userId);
+            int distributorCount = distributorDAO.countDistributor(userId);
 
-        request.setAttribute("productCount", productCount);
-        request.setAttribute("distributorCount", distributorCount);
-        request.setAttribute("saleCount", saleCount);
+            // FETCH NOTIFICATION COUNTS
+            int lowStockCount = productDAO.getLowStockProducts(userId).size();
+            int expiringCount = productDAO.getExpiringProducts(userId).size();
+            int totalNotifications = lowStockCount + expiringCount;
 
-        RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
-        dispatcher.forward(request, response);
+            // GET SALES TREND DATA (DEFAULT TO DAILY)
+            String trendType = request.getParameter("trend");
+            if (trendType == null || trendType.isEmpty()) {
+                trendType = "day";
+            }
+
+            Map<String, Double> salesTrendData;
+            switch (trendType.toLowerCase()) {
+                case "month":
+                    salesTrendData = saleDAO.getMonthlySalesTrend(userId);
+                    break;
+                case "year":
+                    salesTrendData = saleDAO.getYearlySalesTrend(userId);
+                    break;
+                default:
+                    salesTrendData = saleDAO.getDailySalesTrend(userId);
+                    trendType = "day";
+                    break;
+            }
+
+            // GET PRODUCT CATEGORY DISTRIBUTION
+            Map<String, Integer> categoryData = productDAO.getProductCategoryDistribution(userId);
+
+            // GET PAYMENT METHOD DISTRIBUTION
+            Map<String, Integer> paymentMethodData = saleDAO.getPaymentMethodDistribution(userId);
+
+            // CONVERT TO JSON FOR JAVASCRIPT
+            Gson gson = new Gson();
+            String salesTrendJson = gson.toJson(salesTrendData);
+            String categoryDataJson = gson.toJson(categoryData);
+            String paymentMethodJson = gson.toJson(paymentMethodData);
+
+            // CHECK IF AJAX REQUEST FOR TREND CHANGE
+            String isAjax = request.getParameter("ajax");
+            if ("true".equals(isAjax)) {
+                // Return JSON response for AJAX
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                
+                StringBuilder jsonResponse = new StringBuilder();
+                jsonResponse.append("{");
+                jsonResponse.append("\"labels\":[");
+                boolean first = true;
+                for (String label : salesTrendData.keySet()) {
+                    if (!first) jsonResponse.append(",");
+                    jsonResponse.append("\"").append(label).append("\"");
+                    first = false;
+                }
+                jsonResponse.append("],\"values\":[");
+                first = true;
+                for (Double value : salesTrendData.values()) {
+                    if (!first) jsonResponse.append(",");
+                    jsonResponse.append(value);
+                    first = false;
+                }
+                jsonResponse.append("]}");
+                
+                response.getWriter().write(jsonResponse.toString());
+                return;
+            }
+
+            request.setAttribute("productCount", productCount);
+            request.setAttribute("distributorCount", distributorCount);
+            request.setAttribute("todaySaleAmount", todaySaleAmount);
+            request.setAttribute("monthlySaleAmount", monthlySaleAmount);
+            request.setAttribute("yearlySaleAmount", yearlySaleAmount);
+            request.setAttribute("pendingPaymentsAmount", pendingPaymentsAmount);
+            request.setAttribute("pendingPaymentsCount", pendingPaymentsCount);
+            request.setAttribute("salesTrendData", salesTrendJson);
+            request.setAttribute("categoryData", categoryDataJson);
+            request.setAttribute("paymentMethodData", paymentMethodJson);
+            request.setAttribute("trendType", trendType);
+            request.setAttribute("totalNotifications", totalNotifications);
+
+            RequestDispatcher dispatcher = request.getRequestDispatcher("dashboard.jsp");
+            dispatcher.forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading dashboard: " + e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+        }
     }
 
     @Override
