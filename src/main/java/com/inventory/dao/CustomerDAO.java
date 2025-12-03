@@ -28,6 +28,8 @@ public class CustomerDAO {
                 customer.setCustomerId(resultSet.getInt("customerId"));
                 customer.setCustomerName(resultSet.getString("customerName"));
                 customer.setContactNumber(resultSet.getString("contactNumber"));
+                customer.setEmail(resultSet.getString("email"));
+                customer.setAddress(resultSet.getString("address"));
                 customer.setUserId(resultSet.getInt("userId"));
                 customer.setCreatedAt(resultSet.getTimestamp("createdAt"));
 
@@ -43,14 +45,16 @@ public class CustomerDAO {
 
     // ADD CUSTOMER METHOD
     public void addCustomer(Customer customer) {
-        String query = "INSERT INTO customer (customerName, contactNumber, userId) VALUES (?, ?, ?)";
+        String query = "INSERT INTO customer (customerName, contactNumber, email, address, userId) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, customer.getCustomerName());
             statement.setString(2, customer.getContactNumber());
-            statement.setInt(3, customer.getUserId());
+            statement.setString(3, customer.getEmail());
+            statement.setString(4, customer.getAddress());
+            statement.setInt(5, customer.getUserId());
 
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -76,15 +80,17 @@ public class CustomerDAO {
     // UPDATE CUSTOMER METHOD - WITH USER VERIFICATION
     public int updateCustomer(Customer customer) {
         int result = 0;
-        String query = "UPDATE customer SET customerName = ?, contactNumber = ? WHERE customerId = ? AND userId = ?";
+        String query = "UPDATE customer SET customerName = ?, contactNumber = ?, email = ?, address = ? WHERE customerId = ? AND userId = ?";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, customer.getCustomerName());
             statement.setString(2, customer.getContactNumber());
-            statement.setInt(3, customer.getCustomerId());
-            statement.setInt(4, customer.getUserId()); // Verify ownership
+            statement.setString(3, customer.getEmail());
+            statement.setString(4, customer.getAddress());
+            statement.setInt(5, customer.getCustomerId());
+            statement.setInt(6, customer.getUserId()); // Verify ownership
 
             result = statement.executeUpdate();
         } catch (SQLException e) {
@@ -110,6 +116,8 @@ public class CustomerDAO {
                 customer.setCustomerId(resultSet.getInt("customerId"));
                 customer.setCustomerName(resultSet.getString("customerName"));
                 customer.setContactNumber(resultSet.getString("contactNumber"));
+                customer.setEmail(resultSet.getString("email"));
+                customer.setAddress(resultSet.getString("address"));
                 customer.setUserId(resultSet.getInt("userId"));
                 customer.setCreatedAt(resultSet.getTimestamp("createdAt"));
             }
@@ -134,10 +142,12 @@ public class CustomerDAO {
                 Customer customer = new Customer();
                 customer.setCustomerId(resultSet.getInt("customerId"));
                 customer.setCustomerName(resultSet.getString("customerName"));
-                customer.setUserId(resultSet.getInt("userId"));
                 customer.setContactNumber(resultSet.getString("contactNumber"));
+                customer.setEmail(resultSet.getString("email"));
+                customer.setAddress(resultSet.getString("address"));
+                customer.setUserId(resultSet.getInt("userId"));
                 customer.setCreatedAt(resultSet.getTimestamp("createdAt"));
-                
+
                 customerList.add(customer);
             }
         }
@@ -183,6 +193,8 @@ public class CustomerDAO {
                 customer.setCustomerId(rs.getInt("customerId"));
                 customer.setCustomerName(rs.getString("customerName"));
                 customer.setContactNumber(rs.getString("contactNumber"));
+                customer.setEmail(rs.getString("email"));
+                customer.setAddress(rs.getString("address"));
                 list.add(customer);
             }
         } catch (SQLException e) {
