@@ -30,11 +30,15 @@ public class CustomerServlet extends HttpServlet {
             // ADD CUSTOMER
             String customerName = request.getParameter("txtCustomerName");
             String contactNumber = request.getParameter("txtContactNumber");
+            String email = request.getParameter("txtEmail");
+            String address = request.getParameter("txtAddress");
             String userId = request.getParameter("txtUserId");
 
             try {
                 customer.setCustomerName(customerName);
                 customer.setContactNumber(contactNumber);
+                customer.setEmail(email);
+                customer.setAddress(address);
                 customer.setUserId(Integer.parseInt(userId));
 
                 // ADD CUSTOMER METHOD FROM CUSTOMER DAO
@@ -61,12 +65,16 @@ public class CustomerServlet extends HttpServlet {
 
             String customerName = request.getParameter("txtCustomerName");
             String contactNumber = request.getParameter("txtContactNumber");
+            String email = request.getParameter("txtEmail");
+            String address = request.getParameter("txtAddress");
             String userId = request.getParameter("txtUserId");
 
             try {
                 customer.setCustomerId(custId);
                 customer.setCustomerName(customerName);
                 customer.setContactNumber(contactNumber);
+                customer.setEmail(email);
+                customer.setAddress(address);
                 customer.setUserId(Integer.parseInt(userId));
 
                 // UPDATE CUSTOMER METHOD FROM CUSTOMER DAO

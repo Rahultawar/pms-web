@@ -105,6 +105,8 @@
                             <tr>
                                 <th>Customer Name</th>
                                 <th>Contact Number</th>
+                                <th>Email</th>
+                                <th>Address</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -114,6 +116,8 @@
                                 <tr>
                                     <td>${customer.customerName}</td>
                                     <td>${customer.contactNumber}</td>
+                                    <td>${customer.email}</td>
+                                    <td>${customer.address}</td>
                                     <td><a href="CustomerServlet?id=${customer.customerId}" title="Edit"><i
                                             class="fas fa-edit"></i></a></td>
                                     <td><a href="CustomerServlet?deleteId=${customer.customerId}"
@@ -176,6 +180,23 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="txtEmail"
+                                       placeholder="Email Address"
+                                       value="${requestScope.customerDetails.email}">
+                                <label for="email">Email Address</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <textarea class="form-control" id="address" name="txtAddress"
+                                          placeholder="Address" rows="3">${requestScope.customerDetails.address}</textarea>
+                                <label for="address">Address</label>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-success me-2">Save Customer</button>
@@ -223,6 +244,14 @@
             var noBox = document.getElementById('noCustomerAvailable');
             if (noBox) {
                 noBox.style.display = 'none';
+            }
+            // Hide search and add button
+            var addBtn = document.querySelector('[data-action="show-form"][data-mode="add"]');
+            if (addBtn) addBtn.style.display = 'none';
+            var searchBox = document.getElementById('searchBox');
+            if (searchBox) {
+                var col = searchBox.closest('.col-md-3');
+                if (col) col.style.display = 'none';
             }
         });
     </script>

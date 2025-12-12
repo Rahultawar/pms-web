@@ -101,7 +101,10 @@
             if (addSaleBtn) addSaleBtn.style.display = 'none';
 
             var search = document.getElementById('searchBox');
-            if (search) search.style.display = 'none';
+            if (search) {
+                var col = search.closest('.col-md-3');
+                if (col) col.style.display = 'none';
+            }
 
             var saleTable = document.getElementById('saleTable');
             if (saleTable) saleTable.style.display = 'none';
@@ -167,7 +170,10 @@
             if (searchContainer) searchContainer.style.display = 'none';
         } else {
             var searchBox = document.getElementById('searchBox');
-            if (searchBox) searchBox.style.display = 'none';
+            if (searchBox) {
+                var col = searchBox.closest('.col-md-3');
+                if (col) col.style.display = 'none';
+            }
         }
 
         // hide table / no-data box
