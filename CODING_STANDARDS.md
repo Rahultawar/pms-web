@@ -34,8 +34,6 @@
 - Break long lines at logical points
 - Align wrapped lines properly
 
-
-
 ## JSP CODING STANDARDS
 
 ### STRUCTURE
@@ -57,15 +55,6 @@
 </div>
 ```
 
-### JSTL USAGE
-- Use JSTL tags instead of scriptlets
-- Use EL (Expression Language) for data access
-```jsp
-<c:forEach var="product" items="${productList}">
-    <td>${product.productName}</td>
-</c:forEach>
-```
-
 ---
 
 ## CSS CODING STANDARDS
@@ -75,10 +64,6 @@
 - Use semantic, descriptive names
 - Examples: `.form-card`, `.table-responsive`, `.btn-primary`
 
-### ORGANIZATION
-- Group related styles together
-- Order properties logically (layout → visual → typography)
-- Use shorthand properties when possible
 
 ### COMMENTS
 - **ALL COMMENTS MUST BE IN UPPER CASE**
@@ -100,15 +85,6 @@
 - Use **PascalCase** for constructors and classes
 - Use **UPPER_SNAKE_CASE** for constants
 - Examples: `productName`, `addProduct()`, `MAX_RETRY_ATTEMPTS`
-
-### CODE STYLE
-- Use `const` for variables that don't change
-- Use `let` for variables that do change
-- Avoid `var`
-- Use template literals for string concatenation
-```javascript
-const message = `Product ${productName} added successfully`;
-```
 
 ### COMMENTS
 - **ALL COMMENTS MUST BE IN UPPER CASE**

@@ -282,8 +282,8 @@ public class SaleServlet extends HttpServlet {
             throw new IllegalArgumentException("Quantity is required");
         }
         int quantity = Integer.parseInt(quantityParam);
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than 0");
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
         }
         sale.setQuantity(quantity);
 
@@ -302,6 +302,12 @@ public class SaleServlet extends HttpServlet {
             }
         }
 
+        // REQUIRE AT LEAST ONE OF QUANTITY OR SUBQUANTITY
+        int subQtyVal = sale.getSubQuantity() != null ? sale.getSubQuantity() : 0;
+        if (quantity == 0 && subQtyVal == 0) {
+            throw new IllegalArgumentException("Enter quantity or sub-quantity (at least one must be > 0)");
+        }
+
         // SET CUSTOMER (OPTIONAL)
         String customerIdParam = request.getParameter("selCustomer");
         if (customerIdParam != null && !customerIdParam.isEmpty()) {
@@ -318,9 +324,21 @@ public class SaleServlet extends HttpServlet {
 
         // CALCULATE TOTAL AMOUNT WITH DISCOUNT AS PERCENTAGE
         if (product != null) {
-            BigDecimal unitPrice = product.getSellingPrice();
-            BigDecimal quantityBD = new BigDecimal(sale.getQuantity());
-            BigDecimal subtotal = unitPrice.multiply(quantityBD);
+                BigDecimal unitPrice = product.getSellingPrice();
+                    BigDecimal quantityBD = new BigDecimal(sale.getQuantity());
+                    BigDecimal subQuantityBD = new BigDecimal(sale.getSubQuantity() != null ? sale.getSubQuantity() : 0);
+
+                    // Per-subunit price = main unit price divided by number of subunits per unit (when provided)
+            Integer subQtyPerUnit = product.getSubQuantity();
+            BigDecimal subUnitsPerUnit = (subQtyPerUnit != null && subQtyPerUnit > 0)
+                    ? BigDecimal.valueOf(subQtyPerUnit)
+                    : BigDecimal.ZERO;
+                    BigDecimal subUnitPrice = subUnitsPerUnit.compareTo(BigDecimal.ZERO) > 0
+                        ? unitPrice.divide(subUnitsPerUnit, 4, java.math.RoundingMode.HALF_UP)
+                        : unitPrice;
+
+                    BigDecimal subtotal = unitPrice.multiply(quantityBD)
+                        .add(subUnitPrice.multiply(subQuantityBD));
 
             // DISCOUNT IS IN PERCENTAGE (0-100)
             String discountParam = request.getParameter("txtDiscount");

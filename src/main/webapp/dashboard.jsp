@@ -17,6 +17,7 @@
             <c:url var="bootstrapCss" value="/assets/css/bootstrap.min.css" />
             <c:url var="fontAwesomeCss" value="/assets/css/fontawesome.min.css" />
             <c:url var="themeCss" value="/assets/css/theme.css" />
+            <c:url var="chartJsLocal" value="/assets/js/chart.umd.min.js" />
             <c:url var="bootstrapJs" value="/assets/js/bootstrap.bundle.min.js" />
             <c:url var="appJs" value="/assets/js/app.js" />
             <c:url var="interRegular" value="/assets/fonts/inter/Inter-Regular.woff2" />
@@ -26,6 +27,7 @@
             <link rel="preload" href="${interRegular}" as="font" type="font/woff2" crossorigin>
             <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
                 crossorigin="anonymous"></script>
+            <script src="${chartJsLocal}"></script>
 
             <c:url var="styleUrl" value="/assets/css/style.css" />
             <link rel="stylesheet" href="${styleUrl}" />
@@ -68,7 +70,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Today Sale</h6>
-                                        <h2 class="stat-value"><span id="todaySaleAmount">0</span></h2>
+                                        <h2 class="stat-value"><span id="todaySaleAmount" data-value="${todaySaleAmount}"><fmt:formatNumber value="${todaySaleAmount}" type="number" minFractionDigits="2" maxFractionDigits="2"/></span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-success">
                                                 <i class="fas fa-calendar-check"></i> Today's transactions
@@ -87,7 +89,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Total Products</h6>
-                                        <h2 class="stat-value" id="countProduct">0</h2>
+                                        <h2 class="stat-value" id="countProduct" data-value="${productCount}">${productCount}</h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-info">
                                                 <i class="fas fa-box"></i> In inventory
@@ -105,7 +107,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Total Distributors</h6>
-                                        <h2 class="stat-value" id="countDistributor">0</h2>
+                                        <h2 class="stat-value" id="countDistributor" data-value="${distributorCount}">${distributorCount}</h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-warning">
                                                 <i class="fas fa-handshake"></i> Active partners
@@ -124,7 +126,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Total Sale</h6>
-                                        <h2 class="stat-value"><span id="monthlySaleAmount">0</span></h2>
+                                        <h2 class="stat-value"><span id="monthlySaleAmount" data-value="${monthlySaleAmount}"><fmt:formatNumber value="${monthlySaleAmount}" type="number" minFractionDigits="2" maxFractionDigits="2"/></span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-danger">
                                                 <i class="fas fa-calendar-alt"></i> This month
@@ -146,7 +148,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Yearly Sale</h6>
-                                        <h2 class="stat-value"><span id="yearlySaleAmount">0</span></h2>
+                                        <h2 class="stat-value"><span id="yearlySaleAmount" data-value="${yearlySaleAmount}"><fmt:formatNumber value="${yearlySaleAmount}" type="number" minFractionDigits="2" maxFractionDigits="2"/></span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-primary">
                                                 <i class="fas fa-calendar-check"></i> This year
@@ -165,10 +167,10 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Pending Payment</h6>
-                                        <h2 class="stat-value"><span id="pendingPaymentsAmount">0</span></h2>
+                                        <h2 class="stat-value"><span id="pendingPaymentsAmount" data-value="${pendingPaymentsAmount}"><fmt:formatNumber value="${pendingPaymentsAmount}" type="number" minFractionDigits="2" maxFractionDigits="2"/></span></h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-warning">
-                                                <i class="fas fa-exclamation-circle"></i> <span id="pendingPaymentsCount">0</span> transactions
+                                                <i class="fas fa-exclamation-circle"></i> <span id="pendingPaymentsCount" data-value="${pendingPaymentsCount}">${pendingPaymentsCount}</span> transactions
                                             </span>
                                         </div>
                                     </div>
@@ -184,7 +186,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <h6 class="stat-label">Pending Payment Count</h6>
-                                        <h2 class="stat-value" id="pendingCount">0</h2>
+                                        <h2 class="stat-value" id="pendingCount" data-value="${pendingPaymentsCount}">${pendingPaymentsCount}</h2>
                                         <div class="stat-trend">
                                             <span class="badge badge-info">
                                                 <i class="fas fa-list"></i> Total pending
@@ -204,7 +206,7 @@
                                     <div class="stat-content">
                                         <h6 class="stat-label">Payment Methods</h6>
                                         <div style="margin-top: 10px;">
-                                            <canvas id="paymentMethodChart" style="max-height: 120px;"></canvas>
+                                            <canvas id="paymentMethodChart" style="max-height: 120px;" height="140"></canvas>
                                         </div>
                                     </div>
                                 </div>
@@ -219,6 +221,7 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-gradient"></i>Sales Trend</h5>
                                         <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="exportChart('salesChart','sales-trend.png')"><i class="fas fa-download"></i></button>
                                             <button type="button" class="btn ${trendType == 'day' ? 'btn-success' : 'btn-outline-success'}" data-trend="day" onclick="event.preventDefault(); changeTrend('day');">Day</button>
                                             <button type="button" class="btn ${trendType == 'month' ? 'btn-success' : 'btn-outline-success'}" data-trend="month" onclick="event.preventDefault(); changeTrend('month');">Month</button>
                                             <button type="button" class="btn ${trendType == 'year' ? 'btn-success' : 'btn-outline-success'}" data-trend="year" onclick="event.preventDefault(); changeTrend('year');">Year</button>
@@ -230,12 +233,22 @@
 
                             <div class="col-md-6 mb-4">
                                 <div class="chart-container">
-                                    <h5 class="mb-3"><i class="fas fa-chart-pie me-2 text-gradient"></i>Product
-                                        Categories</h5>
-                                    <canvas id="productChart" style="max-height: 300px;"></canvas>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-gradient"></i>Product Categories</h5>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="exportChart('productChart','product-categories.png')"><i class="fas fa-download"></i></button>
+                                        </div>
+                                    </div>
+                                    <canvas id="productChart" style="max-height: 300px;" height="320"></canvas>
+                                    <div id="categorySummary" class="mt-3 small text-muted" style="display:none;"></div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Raw JSON data for charts -->
+                        <script id="salesDataJson" type="application/json"><c:out value="${salesTrendData}" escapeXml="false"/></script>
+                        <script id="categoryDataJson" type="application/json"><c:out value="${categoryData}" escapeXml="false"/></script>
+                        <script id="paymentDataJson" type="application/json"><c:out value="${paymentMethodData}" escapeXml="false"/></script>
 
                         <!-- Quick Actions -->
                         <div class="row mt-4">
@@ -278,54 +291,49 @@
                 <script>
                     // GLOBAL VARIABLES
                     let salesChart = null;
+                    let productChart = null;
                     let currentTrend = '${trendType}';
 
                     // INIT DASHBOARD CHARTS
                     document.addEventListener('DOMContentLoaded', function () {
-                        const todaySaleAmountVal = Number('${todaySaleAmount}') || 0;
-                        const monthlySaleAmountVal = Number('${monthlySaleAmount}') || 0;
-                        const yearlySaleAmountVal = Number('${yearlySaleAmount}') || 0;
-                        const pendingPaymentsAmountVal = Number('${pendingPaymentsAmount}') || 0;
-                        const pendingPaymentsCountVal = Number('${pendingPaymentsCount}') || 0;
-                        const productCountVal = Number('${productCount}') || 0;
-                        const distributorCountVal = Number('${distributorCount}') || 0;
+                        const readValue = (id) => {
+                            const el = document.getElementById(id);
+                            if (!el) return 0;
+                            const raw = el.getAttribute('data-value') ?? el.textContent;
+                            const parsed = Number(raw);
+                            return isNaN(parsed) ? 0 : parsed;
+                        };
+
+                        const todaySaleAmountVal = readValue('todaySaleAmount');
+                        const monthlySaleAmountVal = readValue('monthlySaleAmount');
+                        const yearlySaleAmountVal = readValue('yearlySaleAmount');
+                        const pendingPaymentsAmountVal = readValue('pendingPaymentsAmount');
+                        const pendingPaymentsCountVal = readValue('pendingPaymentsCount');
+                        const productCountVal = readValue('countProduct');
+                        const distributorCountVal = readValue('countDistributor');
                         const hasChartJs = typeof Chart !== 'undefined';
 
-                        // PARSE SALES TREND DATA FROM SERVER
-                        let salesTrendData = {};
-                        try {
-                            const salesDataStr = '<c:out value="${salesTrendData}" escapeXml="false"/>';
-                            console.log('Raw sales data:', salesDataStr);
-                            if (salesDataStr && salesDataStr !== '' && salesDataStr !== 'null') {
-                                salesTrendData = JSON.parse(salesDataStr);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing sales trend data:', e);
-                        }
+                        const parseJsonFromScript = (id) => {
+                            const el = document.getElementById(id);
+                            if (!el) return {};
+                            const raw = (el.textContent || '').trim();
+                            if (!raw || raw === 'null') return {};
+                            try { return JSON.parse(raw); } catch (e) { console.error('JSON parse error', id, e); return {}; }
+                        };
 
-                        // PARSE CATEGORY DATA FROM SERVER
-                        let categoryData = {};
-                        try {
-                            const categoryDataStr = '<c:out value="${categoryData}" escapeXml="false"/>';
-                            console.log('Raw category data:', categoryDataStr);
-                            if (categoryDataStr && categoryDataStr !== '' && categoryDataStr !== 'null') {
-                                categoryData = JSON.parse(categoryDataStr);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing category data:', e);
-                        }
+                        const salesTrendData = parseJsonFromScript('salesDataJson');
+                        const categoryData = parseJsonFromScript('categoryDataJson');
+                        const paymentMethodData = parseJsonFromScript('paymentDataJson');
 
-                        // PARSE PAYMENT METHOD DATA FROM SERVER
-                        let paymentMethodData = {};
-                        try {
-                            const paymentDataStr = '<c:out value="${paymentMethodData}" escapeXml="false"/>';
-                            console.log('Raw payment method data:', paymentDataStr);
-                            if (paymentDataStr && paymentDataStr !== '' && paymentDataStr !== 'null') {
-                                paymentMethodData = JSON.parse(paymentDataStr);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing payment method data:', e);
-                        }
+                        const buildChartDataset = (rawObj) => {
+                            const entries = Object.entries(rawObj || {})
+                                .map(([k, v]) => [typeof k === 'string' ? k.trim() : '', Number(v)])
+                                .filter(([k, v]) => k !== '' && !Number.isNaN(v) && v > 0);
+                            return {
+                                labels: entries.map(e => e[0]),
+                                values: entries.map(e => e[1])
+                            };
+                        };
 
                         console.log('Parsed sales trend data:', salesTrendData);
                         console.log('Parsed category data:', categoryData);
@@ -385,17 +393,31 @@
                         }
 
                         // PREPARE PRODUCT CATEGORY DATA
-                        const categoryLabels = Object.keys(categoryData);
-                        const categoryValues = Object.values(categoryData);
+                        const { labels: categoryLabels, values: categoryValues } = buildChartDataset(categoryData);
                         const categoryColors = [
                             '#4caf50', '#2196f3', '#ff9800', '#f44336', '#9c27b0',
                             '#00bcd4', '#ffeb3b', '#795548', '#607d8b', '#e91e63'
                         ];
 
+                        const renderCategorySummary = () => {
+                            const summaryEl = document.getElementById('categorySummary');
+                            if (summaryEl) {
+                                summaryEl.style.display = 'none';
+                                summaryEl.textContent = '';
+                            }
+                        };
+
                         // PRODUCT CHART
                         const productCtx = document.getElementById('productChart');
-                        if (hasChartJs && productCtx) {
-                            new Chart(productCtx, {
+                        const categoryTotal = categoryValues.reduce((a, b) => a + b, 0);
+
+                        if (!categoryLabels.length || categoryTotal === 0) {
+                            renderCategorySummary([], []);
+                            if (productCtx) {
+                                productCtx.style.display = 'none';
+                            }
+                        } else if (hasChartJs && productCtx) {
+                            productChart = new Chart(productCtx, {
                                 type: 'doughnut',
                                 data: {
                                     labels: categoryLabels.length > 0 ? categoryLabels : ['No Data'],
@@ -414,9 +436,7 @@
                                             position: 'bottom',
                                             labels: {
                                                 padding: 15,
-                                                font: {
-                                                    size: 12
-                                                }
+                                                font: { size: 12 }
                                             }
                                         },
                                         tooltip: {
@@ -433,16 +453,25 @@
                                     }
                                 }
                             });
+                            renderCategorySummary(categoryLabels, categoryValues);
                         }
 
                         // PREPARE PAYMENT METHOD DATA
-                        const paymentLabels = Object.keys(paymentMethodData);
-                        const paymentValues = Object.values(paymentMethodData);
+                        const { labels: paymentLabels, values: paymentValues } = buildChartDataset(paymentMethodData);
                         const paymentColors = ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9c27b0'];
+                        const paymentSummaryEl = document.createElement('div');
+                        paymentSummaryEl.className = 'mt-2 small text-muted';
+                        const paymentCard = document.getElementById('paymentMethodChart')?.parentElement;
+                        if (paymentCard) {
+                            paymentCard.appendChild(paymentSummaryEl);
+                        }
 
                         // PAYMENT METHOD CHART
                         const paymentCtx = document.getElementById('paymentMethodChart');
-                        if (hasChartJs && paymentCtx) {
+                        if (!paymentLabels.length || paymentValues.reduce((a, b) => a + b, 0) === 0) {
+                            if (paymentSummaryEl) paymentSummaryEl.textContent = 'No payment data yet.';
+                            if (paymentCtx) paymentCtx.style.display = 'none';
+                        } else if (hasChartJs && paymentCtx) {
                             new Chart(paymentCtx, {
                                 type: 'pie',
                                 data: {
@@ -481,6 +510,19 @@
                                     }
                                 }
                             });
+                        }
+
+                        if (paymentSummaryEl) {
+                            const totalPay = paymentValues.reduce((a, b) => a + b, 0);
+                            if (!paymentLabels.length || totalPay === 0) {
+                                paymentSummaryEl.textContent = 'No payment data yet.';
+                            } else {
+                                paymentSummaryEl.textContent = paymentLabels.map((label, idx) => {
+                                    const val = paymentValues[idx] || 0;
+                                    const pct = totalPay ? ((val / totalPay) * 100).toFixed(1) : '0.0';
+                                    return `${label}: ${pct}%`;
+                                }).join(' · ');
+                            }
                         }
 
                         // ANIMATE COUNTERS
@@ -528,6 +570,20 @@
                         }
                     }
 
+                    // EXPORT CHART AS PNG
+                    function exportChart(canvasId, fileName) {
+                        const canvas = document.getElementById(canvasId);
+                        if (!canvas || typeof canvas.toDataURL !== 'function') {
+                            alert('Chart not ready to export.');
+                            return;
+                        }
+
+                        const link = document.createElement('a');
+                        link.href = canvas.toDataURL('image/png');
+                        link.download = fileName || 'chart.png';
+                        link.click();
+                    }
+
                     function animateValue(id, start, end, duration, prefix = '') {
                         const obj = document.getElementById(id);
                         if (!obj) return;
@@ -535,14 +591,15 @@
                         const range = end - start;
                         const increment = range / (duration / 16);
                         let current = start;
+                        const isIntegerTarget = Number.isInteger(end);
 
                         const timer = setInterval(() => {
                             current += increment;
                             if (current >= end) {
-                                obj.textContent = prefix + Math.round(end);
+                                obj.textContent = prefix + (isIntegerTarget ? Math.round(end) : end.toFixed(2));
                                 clearInterval(timer);
                             } else {
-                                obj.textContent = prefix + Math.round(current);
+                                obj.textContent = prefix + (isIntegerTarget ? Math.round(current) : current.toFixed(2));
                             }
                         }, 16);
                     }

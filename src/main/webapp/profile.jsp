@@ -85,10 +85,10 @@
 					<div
 						class="card-header d-flex justify-content-between align-items-center">
 						<h5 class="mb-0">Profile Information</h5>
-						<button type="button" class="btn btn-primary btn-sm"
-							id="editProfile" onclick="PMS.showForm('profile')">
-							<i class="fas fa-edit me-1"></i>Edit Profile
-						</button>
+					<button type="button" class="btn btn-primary btn-sm"
+						id="editProfile" onclick="PMS.showForm('edit')">
+						<i class="fas fa-edit me-1"></i>Edit Profile
+					</button>
 					</div>
 					<div class="card-body">
 						<div class="row align-items-center">

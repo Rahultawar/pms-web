@@ -136,7 +136,7 @@
                                                     <td>₹${sale.amountGivenByCustomer}</td>
                                                     <td>
                                                         <c:choose>
-                                                            <c:when test="${sale.status.name() == 'paid'}">
+                                                            <c:when test="${sale.status.toString() == 'paid'}">
                                                                 <span class="badge bg-success">Paid</span>
                                                             </c:when>
                                                             <c:otherwise>
@@ -235,7 +235,7 @@
 
                                     <div class="form-floating mb-3">
                                         <input type="number" class="form-control" id="quantity" name="txtQuantity" 
-                                            placeholder="Quantity" value="${s.quantity}" min="1" required>
+                                            placeholder="Quantity" value="${s.quantity}" min="0" required>
                                         <label for="quantity">Quantity</label>
                                     </div>
 
@@ -296,16 +296,18 @@
                                     <div class="form-floating mb-3">
                                         <select name="selStatus" id="selStatus" class="form-control" required>
                                             <option value="" disabled <c:if test="${s == null}">selected</c:if>>Select Status</option>
-                                            <option value="pending" <c:if test="${s != null && s.status == 'pending'}">selected</c:if>>Pending</option>
-                                            <option value="paid" <c:if test="${s != null && s.status == 'paid'}">selected</c:if>>Paid</option>
+                                            <option value="pending" <c:if test="${s != null && s.status.toString() == 'pending'}">selected</c:if>>Pending</option>
+                                            <option value="paid" <c:if test="${s != null && s.status.toString() == 'paid'}">selected</c:if>>Paid</option>
                                         </select>
                                         <label for="selStatus">Payment Status</label>
                                     </div>
                                 </div>
                             </div>
 
+                            <div id="saleValidationMessage" class="text-danger small mb-2" style="display:none;"></div>
+
                             <div class="d-flex justify-content-end mt-3">
-                                <button type="submit" class="btn btn-success me-2">
+                                <button type="submit" class="btn btn-success me-2" id="saveSaleBtn">
                                     <i class="fas fa-save me-2"></i>Save Sale
                                 </button>
                                 <button type="button" class="btn btn-secondary" id="btnCancel" data-action="hide-form">
@@ -355,6 +357,22 @@
             const discountInput = document.getElementById('discount');
             const totalAmountInput = document.getElementById('totalAmount');
 
+            // Convert discount amount to percentage when editing
+            <c:if test="${not empty s && s.discount != null && s.discount > 0}">
+                const isEditing = true;
+                const storedDiscountAmount = parseFloat('${s.discount}') || 0;
+                const totalWithDiscount = parseFloat('${s.totalAmount}') || 0;
+                
+                // Calculate original subtotal (total + discount)
+                const originalSubtotal = totalWithDiscount + storedDiscountAmount;
+                
+                // Calculate discount percentage
+                if (originalSubtotal > 0) {
+                    const discountPercentage = (storedDiscountAmount / originalSubtotal) * 100;
+                    discountInput.value = discountPercentage.toFixed(2);
+                }
+            </c:if>
+
             // Product change handler - auto-select distributor and handle subQuantity
             productSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -392,10 +410,13 @@
                 const selectedOption = productSelect.options[productSelect.selectedIndex];
                 if (selectedOption.value) {
                     const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                    const subUnitsPerUnit = parseInt(selectedOption.getAttribute('data-subqty')) || 0;
                     const qty = parseInt(quantityInput.value) || 0;
+                    const subQty = parseInt(subQuantityInput.value) || 0;
                     const discountPercent = parseFloat(discountInput.value) || 0;
 
-                    const subtotal = price * qty;
+                    const subUnitPrice = subUnitsPerUnit > 0 ? (price / subUnitsPerUnit) : price;
+                    const subtotal = (price * qty) + (subUnitPrice * subQty);
                     const discountAmount = (subtotal * discountPercent) / 100;
                     const total = subtotal - discountAmount;
 
@@ -405,6 +426,7 @@
 
             // Event listeners for calculation
             quantityInput.addEventListener('input', calculateTotal);
+            subQuantityInput.addEventListener('input', calculateTotal);
             discountInput.addEventListener('input', function() {
                 const discount = parseFloat(this.value) || 0;
                 if (discount < 0 || discount > 100) {
@@ -414,10 +436,58 @@
                 calculateTotal();
             });
 
+            // CLIENT-SIDE VALIDATION
+            const paymentSelect = document.getElementById('selPaymentMethod');
+            const statusSelect = document.getElementById('selStatus');
+            const amountGivenInput = document.getElementById('amountGivenByCustomer');
+            const validationMessage = document.getElementById('saleValidationMessage');
+            const saveSaleBtn = document.getElementById('saveSaleBtn');
+
+            function validateSaleForm() {
+                let errors = [];
+
+                const qty = parseInt(quantityInput.value) || 0;
+                const subQty = parseInt(subQuantityInput.value) || 0;
+                if (qty < 0) errors.push('Quantity cannot be negative');
+                if (subQty < 0) errors.push('Sub-quantity cannot be negative');
+                if (qty === 0 && subQty === 0) errors.push('Enter quantity or sub-quantity (at least one must be greater than 0)');
+
+                const discountVal = parseFloat(discountInput.value) || 0;
+                if (discountVal < 0 || discountVal > 100) errors.push('Discount must be between 0 and 100');
+
+                const amountGivenVal = parseFloat(amountGivenInput.value) || 0;
+                if (amountGivenVal < 0) errors.push('Amount given cannot be negative');
+
+                if (!paymentSelect.value) errors.push('Select payment method');
+                if (!statusSelect.value) errors.push('Select payment status');
+                if (!productSelect.value) errors.push('Select product');
+                if (!distributorSelect.value) errors.push('Select distributor');
+
+                if (errors.length > 0) {
+                    validationMessage.style.display = 'block';
+                    validationMessage.textContent = errors[0];
+                    if (saveSaleBtn) saveSaleBtn.disabled = true;
+                } else {
+                    validationMessage.style.display = 'none';
+                    validationMessage.textContent = '';
+                    if (saveSaleBtn) saveSaleBtn.disabled = false;
+                }
+            }
+
+            [quantityInput, subQuantityInput, discountInput, amountGivenInput, paymentSelect, statusSelect, productSelect, distributorSelect]
+                .forEach(el => {
+                    if (el) {
+                        el.addEventListener('input', validateSaleForm);
+                        el.addEventListener('change', validateSaleForm);
+                    }
+                });
+
             // Trigger initial calculation if editing
             if (productSelect.value) {
                 productSelect.dispatchEvent(new Event('change'));
             }
+
+            validateSaleForm();
         });
     </script>
 
