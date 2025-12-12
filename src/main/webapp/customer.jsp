@@ -245,6 +245,14 @@
             if (noBox) {
                 noBox.style.display = 'none';
             }
+            // Hide search and add button
+            var addBtn = document.querySelector('[data-action="show-form"][data-mode="add"]');
+            if (addBtn) addBtn.style.display = 'none';
+            var searchBox = document.getElementById('searchBox');
+            if (searchBox) {
+                var col = searchBox.closest('.col-md-3');
+                if (col) col.style.display = 'none';
+            }
         });
     </script>
 </c:if>
