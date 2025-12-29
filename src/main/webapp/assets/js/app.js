@@ -88,7 +88,7 @@
     function showForm(mode) {
         var page = document.body.dataset.page || '';
 
-        // Hide header for all form modes
+        // HIDE HEADER FOR ALL FORM MODES
         var header = document.querySelector('.app-header');
         if (header) header.style.display = 'none';
         
@@ -160,11 +160,11 @@
         if (!form) return;
         form.style.display = 'block';
 
-        // hide add button and search
+        // HIDE ADD BUTTON AND SEARCH
         var addBtn = document.querySelector('[data-action="show-form"][data-mode="add"]');
         if (addBtn) addBtn.style.display = 'none';
         
-        // Only hide search container for distributor page
+        // ONLY HIDE SEARCH CONTAINER FOR DISTRIBUTOR PAGE
         if (page === 'distributor') {
             var searchContainer = document.getElementById('searchContainer');
             if (searchContainer) searchContainer.style.display = 'none';
@@ -176,13 +176,13 @@
             }
         }
 
-        // hide table / no-data box
+        // HIDE TABLE / NO-DATA BOX
         var table = document.getElementById(tableId);
         if (table) table.style.display = 'none';
         var noBox = document.getElementById(noBoxId);
         if (noBox) noBox.style.display = 'none';
 
-        // breadcrumb
+        // BREADCRUMB
         var breadcrumb = document.getElementById('breadcrumbItem');
         if (breadcrumb) {
             var existing = breadcrumb.querySelector('.dynamic-crumb');
@@ -213,7 +213,7 @@
             if (resetBtn) resetBtn.style.display = 'none';
         }
 
-        // scroll form into view nicely
+        // SCROLL FORM INTO VIEW NICELY
         setTimeout(function () {
             form.scrollIntoView({ behavior: 'smooth' });
         }, 50);
@@ -231,7 +231,7 @@
             if (profileView) profileView.style.display = 'block';
             if (editBtn) editBtn.style.display = 'inline-block';
             
-            // Reset breadcrumb
+            // RESET BREADCRUMB
             var breadcrumb = document.getElementById('breadcrumbItem');
             if (breadcrumb) {
                 var existing = breadcrumb.querySelector('.dynamic-crumb');

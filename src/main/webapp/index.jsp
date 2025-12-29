@@ -92,14 +92,7 @@
                         <div class="password-error text-danger"></div>
                     </div>
 
-                    <%-- REMEMBER ME & FORGET PASSWORD --%>
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Remember me</label>
-                        </div>
-                        <a href="#" class="text-decoration-none small">Forgot Password?</a>
-                    </div>
+
 
                     <%-- SIGN IN BUTTON --%>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-3">

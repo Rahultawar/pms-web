@@ -10,34 +10,41 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.util.Base64;
 
 @WebServlet("/RegistrationServlet")
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
-        maxFileSize = 1024 * 1024 * 2,         // 2MB
-        maxRequestSize = 1024 * 1024 * 10      // 10MB
+        fileSizeThreshold = 1024 * 1024 * 1,   // 1MB
+        maxFileSize = 1024 * 1024 * 5,          // 5MB - Increased limit
+        maxRequestSize = 1024 * 1024 * 10       // 10MB
 )
 public class RegistrationServlet extends HttpServlet {
 
-    private static final String UPLOAD_DIRECTORY = "assets/images/logos";
-
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         try {
-            // FORM PARAMETERS
-            String userName = request.getParameter("userName");
-            String password = request.getParameter("password");
-            String confirmPassword = request.getParameter("confirmPassword");
-            String medicalStoreName = request.getParameter("medicalStoreName");
+            // SET REQUEST ENCODING TO UTF-8
+            request.setCharacterEncoding("UTF-8");
+            
+            // EXTRACT FORM PARAMETERS FROM MULTIPART REQUEST
+            String userName = getPartValue(request, "userName");
+            String password = getPartValue(request, "password");
+            String confirmPassword = getPartValue(request, "confirmPassword");
+            String medicalStoreName = getPartValue(request, "medicalStoreName");
+
+            // DEBUG LOGGING
+            System.out.println("DEBUG - userName: " + userName);
+            System.out.println("DEBUG - password: " + (password != null ? "***" : "null"));
+            System.out.println("DEBUG - medicalStoreName: " + medicalStoreName);
 
             // BASIC VALIDATION
-            if (userName == null || userName.isEmpty() ||
-                    password == null || password.isEmpty() ||
-                    medicalStoreName == null || medicalStoreName.isEmpty()) {
+            if (userName == null || userName.trim().isEmpty() ||
+                    password == null || password.trim().isEmpty() ||
+                    medicalStoreName == null || medicalStoreName.trim().isEmpty()) {
 
                 request.setAttribute("error-message", "All required fields must be filled");
                 request.getRequestDispatcher("registration.jsp").forward(request, response);
@@ -70,39 +77,43 @@ public class RegistrationServlet extends HttpServlet {
                 return;
             }
 
-            // FILE UPLOAD HANDLING
-            String logoFileName = "assets/images/default-logo.png";  // DEFAULT LOGO
+            // FILE UPLOAD HANDLING - NOW OPTIONAL AND STORED AS BASE64
+            String logoBase64 = "";  // EMPTY STRING FOR NO LOGO
             Part filePart = request.getPart("medicalStoreLogo");
 
             if (filePart != null && filePart.getSize() > 0) {
-
-                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-                String fileExtension = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
-
-                // VALIDATE EXTENSION
-                if (!fileExtension.matches("\\.(png|jpg|jpeg|svg)")) {
-                    request.setAttribute("error-message", "Invalid file type. Only PNG, JPG, JPEG, SVG allowed.");
+                // VALIDATE FILE TYPE
+                String contentType = filePart.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    request.setAttribute("error-message", "Invalid file type. Only image files allowed.");
                     request.getRequestDispatcher("registration.jsp").forward(request, response);
                     return;
                 }
 
-                logoFileName = userName + "_" + System.currentTimeMillis() + fileExtension;
+                // VALIDATE FILE SIZE (5MB max)
+                if (filePart.getSize() > 5242880) { // 5MB
+                    request.setAttribute("error-message", "File size should be less than 5MB.");
+                    request.getRequestDispatcher("registration.jsp").forward(request, response);
+                    return;
+                }
 
-                String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIRECTORY;
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) uploadDir.mkdirs();
-
-                filePart.write(uploadPath + File.separator + logoFileName);
-
-                logoFileName = UPLOAD_DIRECTORY + "/" + logoFileName;
+                // CONVERT TO BASE64
+                try (InputStream fileContent = filePart.getInputStream()) {
+                    byte[] bytes = fileContent.readAllBytes();
+                    logoBase64 = Base64.getEncoder().encodeToString(bytes);
+                } catch (Exception e) {
+                    request.setAttribute("error-message", "Error uploading logo: " + e.getMessage());
+                    request.getRequestDispatcher("registration.jsp").forward(request, response);
+                    return;
+                }
             }
 
             // CREATE USER OBJECT
             User user = new User();
-            user.setUserName(userName);
+            user.setUserName(userName.trim());
             user.setPassword(password);
-            user.setMedicalStoreName(medicalStoreName);
-            user.setMedicalStoreLogo(logoFileName);
+            user.setMedicalStoreName(medicalStoreName.trim());
+            user.setMedicalStoreLogo(logoBase64);
 
             // SAVE USER
             boolean isRegistered = userDAO.registerUser(user);
@@ -116,7 +127,26 @@ public class RegistrationServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            request.setAttribute("error-message", "Server error: " + e.getMessage());
+            request.getRequestDispatcher("registration.jsp").forward(request, response);
+        }
+    }
+
+    private String getPartValue(HttpServletRequest request, String partName) {
+        try {
+            Part part = request.getPart(partName);
+            if (part == null) {
+                return null;
+            }
+            try (InputStream is = part.getInputStream()) {
+                byte[] bytes = is.readAllBytes();
+                return new String(bytes, "UTF-8").trim();
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting part value for: " + partName);
+            e.printStackTrace();
+            return null;
         }
     }
 

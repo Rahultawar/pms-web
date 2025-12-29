@@ -331,13 +331,22 @@ public class SaleDAO {
     // GET DAILY SALES TREND FOR LAST 7 DAYS (ALL STATUSES)
     public java.util.Map<String, Double> getDailySalesTrend(int userId) {
         java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
-        String query = "SELECT DATE_FORMAT(saleDate, '%a') as dayName, " +
-                "COALESCE(SUM(totalAmount), 0) as total " +
-                "FROM sale " +
-                "WHERE userId = ? " +
-                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) " +
-                "GROUP BY DATE(saleDate), dayName " +
-                "ORDER BY DATE(saleDate)";
+        
+        // Use a subquery to generate all 7 days and left join with sales data
+        String query = "SELECT DATE_FORMAT(date_series.date, '%a') as dayName, " +
+                "COALESCE(SUM(s.totalAmount), 0) as total " +
+                "FROM ( " +
+                "    SELECT DATE_SUB(CURDATE(), INTERVAL 6 DAY) as date " +
+                "    UNION SELECT DATE_SUB(CURDATE(), INTERVAL 5 DAY) " +
+                "    UNION SELECT DATE_SUB(CURDATE(), INTERVAL 4 DAY) " +
+                "    UNION SELECT DATE_SUB(CURDATE(), INTERVAL 3 DAY) " +
+                "    UNION SELECT DATE_SUB(CURDATE(), INTERVAL 2 DAY) " +
+                "    UNION SELECT DATE_SUB(CURDATE(), INTERVAL 1 DAY) " +
+                "    UNION SELECT CURDATE() " +
+                ") as date_series " +
+                "LEFT JOIN sale s ON DATE(s.saleDate) = date_series.date AND s.userId = ? " +
+                "GROUP BY date_series.date, dayName " +
+                "ORDER BY date_series.date";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
@@ -358,13 +367,27 @@ public class SaleDAO {
     // GET MONTHLY SALES TREND FOR LAST 12 MONTHS (ALL STATUSES)
     public java.util.Map<String, Double> getMonthlySalesTrend(int userId) {
         java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
-        String query = "SELECT DATE_FORMAT(saleDate, '%b') as monthName, " +
-                "COALESCE(SUM(totalAmount), 0) as total " +
-                "FROM sale " +
-                "WHERE userId = ? " +
-                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH) " +
-                "GROUP BY YEAR(saleDate), MONTH(saleDate), monthName " +
-                "ORDER BY YEAR(saleDate), MONTH(saleDate)";
+        
+        // Generate all 12 months and left join with sales data
+        String query = "SELECT DATE_FORMAT(month_series.month_date, '%b') as monthName, " +
+                "COALESCE(SUM(s.totalAmount), 0) as total " +
+                "FROM ( " +
+                "    SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01') as month_date " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 10 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 9 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 8 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 7 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 6 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 4 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 2 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01') " +
+                "    UNION SELECT DATE_FORMAT(CURDATE(), '%Y-%m-01') " +
+                ") as month_series " +
+                "LEFT JOIN sale s ON DATE_FORMAT(s.saleDate, '%Y-%m-01') = month_series.month_date AND s.userId = ? " +
+                "GROUP BY month_series.month_date, monthName " +
+                "ORDER BY month_series.month_date";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {
@@ -385,13 +408,20 @@ public class SaleDAO {
     // GET YEARLY SALES TREND FOR LAST 5 YEARS (ALL STATUSES)
     public java.util.Map<String, Double> getYearlySalesTrend(int userId) {
         java.util.Map<String, Double> salesData = new java.util.LinkedHashMap<>();
-        String query = "SELECT YEAR(saleDate) as yearValue, " +
-                "COALESCE(SUM(totalAmount), 0) as total " +
-                "FROM sale " +
-                "WHERE userId = ? " +
-                "AND saleDate >= DATE_SUB(CURDATE(), INTERVAL 4 YEAR) " +
-                "GROUP BY YEAR(saleDate) " +
-                "ORDER BY YEAR(saleDate)";
+        
+        // Generate all 5 years and left join with sales data
+        String query = "SELECT year_series.year_value as yearValue, " +
+                "COALESCE(SUM(s.totalAmount), 0) as total " +
+                "FROM ( " +
+                "    SELECT YEAR(DATE_SUB(CURDATE(), INTERVAL 4 YEAR)) as year_value " +
+                "    UNION SELECT YEAR(DATE_SUB(CURDATE(), INTERVAL 3 YEAR)) " +
+                "    UNION SELECT YEAR(DATE_SUB(CURDATE(), INTERVAL 2 YEAR)) " +
+                "    UNION SELECT YEAR(DATE_SUB(CURDATE(), INTERVAL 1 YEAR)) " +
+                "    UNION SELECT YEAR(CURDATE()) " +
+                ") as year_series " +
+                "LEFT JOIN sale s ON YEAR(s.saleDate) = year_series.year_value AND s.userId = ? " +
+                "GROUP BY year_series.year_value " +
+                "ORDER BY year_series.year_value";
 
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)) {

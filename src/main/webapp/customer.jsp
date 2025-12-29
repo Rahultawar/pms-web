@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page isELIgnored="false" %>
 
-<!-- Session and required data checks using JSTL/EL -->
+<!-- SESSION AND REQUIRED DATA CHECKS USING JSTL/EL -->
 <c:if test="${empty sessionScope.username}">
     <c:redirect url="index.jsp"/>
     <c:remove var="_stop"/>
@@ -13,7 +13,7 @@
 </c:if>
 
 <c:set var="c" value="${requestScope.customerDetails}"/>
-<!-- URL for dashboard servlet (ensures correct context path) -->
+<!-- URL FOR DASHBOARD SERVLET (ENSURES CORRECT CONTEXT PATH) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -42,10 +42,10 @@
     <c:url var="profilePicUrl" value="/assets/images/ProfilePic.jpg"/>
     <c:url var="logoutUrl" value="/LogoutServlet"/>
 </head>
-<!-- Customer Management Page Body -->
+<!-- CUSTOMER MANAGEMENT PAGE BODY -->
 <body data-page="customer">
 
-<!-- Main Application Container -->
+<!-- MAIN APPLICATION CONTAINER -->
 <div class="app-shell">
 <!-- SIDEBAR -->
 <jsp:include page="sidebar.jsp">
@@ -78,7 +78,7 @@
                 </button>
             </div>
         </div>
-        <!-- Error message display -->
+        <!-- ERROR MESSAGE DISPLAY -->
         <c:if test="${not empty requestScope.errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i>
@@ -128,7 +128,7 @@
                         </table>
                         </div>
 
-                        <!-- Pagination -->
+                        <!-- PAGINATION -->
                         <div class="pagination-wrapper card-footer bg-transparent">
                             <c:if test="${noOfPages > 1}">
                                 <c:forEach begin="1" end="${noOfPages}" var="i">
@@ -150,18 +150,18 @@
                 </c:otherwise>
             </c:choose>
 
-            <!-- Customer Add/Edit Form - Hidden by default, shown by JavaScript -->
+            <!-- CUSTOMER ADD/EDIT FORM - HIDDEN BY DEFAULT, SHOWN BY JAVASCRIPT -->
             <div id="customerForm" class="card form-card" style="display: none;">
                 <h5 class="card-title mb-3" id="formTitle">Add New Customer</h5>
                 <form action="CustomerServlet" method="post">
-                    <!-- Hidden fields for customer ID and action type -->
+                    <!-- HIDDEN FIELDS FOR CUSTOMER ID AND ACTION TYPE -->
                     <input type="hidden" id="customerId" name="customerId"
                            value="${requestScope.customerDetails.customerId}">
                     <input type="hidden" name="actionType"
                            value="${requestScope.actionTypeValue != null ? requestScope.actionTypeValue : (requestScope.customerDetails != null ? 'update' : 'add')}">
                     <input type="hidden" name="txtUserId" value="${sessionScope.userId}">
 
-                    <!-- Form fields -->
+                    <!-- FORM FIELDS -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-floating mb-3">
@@ -213,14 +213,14 @@
 
 </div>
 
-<!-- Shared JS -->
+<!-- SHARED JS -->
                 <script src="${appJs}"></script>
 
 
 
 <c:if test="${not empty requestScope.customerDetails and requestScope.actionTypeValue != 'view'}">
     <script>
-        // Ask shared module to show edit form when server provided customerDetails
+        // ASK SHARED MODULE TO SHOW EDIT FORM WHEN SERVER PROVIDED CUSTOMERDETAILS
         document.addEventListener('DOMContentLoaded', function () {
             PMS.showForm('edit');
         });
@@ -229,23 +229,23 @@
 
 <c:if test="${not empty requestScope.errorMessage}">
     <script>
-        // Show form when there are validation errors
+        // SHOW FORM WHEN THERE ARE VALIDATION ERRORS
         document.addEventListener('DOMContentLoaded', function () {
             var form = document.getElementById('customerForm');
             if (form) {
                 form.style.display = 'block';
             }
-            // Hide table if exists
+            // HIDE TABLE IF EXISTS
             var table = document.getElementById('customerTable');
             if (table) {
                 table.style.display = 'none';
             }
-            // Hide empty state if exists
+            // HIDE EMPTY STATE IF EXISTS
             var noBox = document.getElementById('noCustomerAvailable');
             if (noBox) {
                 noBox.style.display = 'none';
             }
-            // Hide search and add button
+            // HIDE SEARCH AND ADD BUTTON
             var addBtn = document.querySelector('[data-action="show-form"][data-mode="add"]');
             if (addBtn) addBtn.style.display = 'none';
             var searchBox = document.getElementById('searchBox');

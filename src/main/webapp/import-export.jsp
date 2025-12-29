@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page isELIgnored="false" %>
 
-<!-- Session and required data checks using JSTL/EL -->
+<!-- SESSION AND REQUIRED DATA CHECKS USING JSTL/EL -->
 <c:if test="${empty sessionScope.username}">
     <c:redirect url="index.jsp"/>
     <c:remove var="_stop"/>

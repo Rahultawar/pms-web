@@ -1,17 +1,17 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- Calculate unread notification count -->
+<!-- CALCULATE UNREAD NOTIFICATION COUNT -->
 <%
 Integer originalNotificationCount = (Integer) request.getAttribute("totalNotifications");
 if (session.getAttribute("userId") != null) {
     Integer userIdObj = (Integer) session.getAttribute("userId");
-    int userId = userIdObj.intValue(); // Convert Integer to int
+    int userId = userIdObj.intValue(); // CONVERT INTEGER TO INT
     try {
         com.inventory.dao.UserNotificationDAO userNotificationDAO = new com.inventory.dao.UserNotificationDAO();
         int unreadCount = userNotificationDAO.getUnreadNotificationCount(userId);
         request.setAttribute("totalNotifications", unreadCount);
     } catch (Exception e) {
-        // Fallback to original count if calculation fails
+        // FALLBACK TO ORIGINAL COUNT IF CALCULATION FAILS
         if (originalNotificationCount != null) {
             request.setAttribute("totalNotifications", originalNotificationCount);
         }
@@ -22,16 +22,22 @@ if (session.getAttribute("userId") != null) {
 <!-- SIDEBAR -->
 <c:url var="defaultLogoUrl" value="/assets/images/logo-modern.svg" />
 <c:url var="logoutUrl" value="/LogoutServlet" />
-<c:url var="userLogoUrl" value="/${sessionScope.medicalStoreLogo}" />
-<c:set var="logoUrl" value="${not empty sessionScope.medicalStoreLogo ? userLogoUrl : defaultLogoUrl}" />
 
 <aside id="sidebar" class="d-flex flex-column flex-shrink-0 p-3">
     <b>
         <a href="DashboardServlet"
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none text-dark">
-            <img src="${logoUrl}" alt="Logo" width="40" height="40" 
-                 style="border-radius: 8px; object-fit: cover;"
-                 onerror="this.onerror=null; this.src='${defaultLogoUrl}';">
+            <c:choose>
+                <c:when test="${not empty sessionScope.medicalStoreLogo}">
+                    <img src="data:image/jpeg;base64,${sessionScope.medicalStoreLogo}" alt="Store Logo" width="40" height="40" 
+                         style="border-radius: 8px; object-fit: cover;"
+                         onerror="this.onerror=null; this.src='${defaultLogoUrl}';">
+                </c:when>
+                <c:otherwise>
+                    <img src="${defaultLogoUrl}" alt="Default Logo" width="40" height="40" 
+                         style="border-radius: 8px; object-fit: cover;">
+                </c:otherwise>
+            </c:choose>
             <span class="fs-6 ms-2">
                 <c:out value="${sessionScope.medicalStoreName != null ? sessionScope.medicalStoreName : 'Medical Store'}"/>
             </span>

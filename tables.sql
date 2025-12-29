@@ -3,7 +3,7 @@ CREATE TABLE `user` (
   `userName` VARCHAR(100) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `medicalStoreName` VARCHAR(255) NOT NULL,
-  `medicalStoreLogo` VARCHAR(255) NOT NULL,
+  `medicalStoreLogo` MEDIUMTEXT,
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`userId`),
   UNIQUE KEY `ux_user_userName` (`userName`)

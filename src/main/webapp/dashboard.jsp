@@ -1,3 +1,4 @@
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -221,7 +222,7 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-gradient"></i>Sales Trend</h5>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-secondary" onclick="exportChart('salesChart','sales-trend.png')"><i class="fas fa-download"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="exportDashboardPdf('sales', '${trendType}')"><i class="fas fa-file-pdf"></i> PDF</button>
                                             <button type="button" class="btn ${trendType == 'day' ? 'btn-success' : 'btn-outline-success'}" data-trend="day" onclick="event.preventDefault(); changeTrend('day');">Day</button>
                                             <button type="button" class="btn ${trendType == 'month' ? 'btn-success' : 'btn-outline-success'}" data-trend="month" onclick="event.preventDefault(); changeTrend('month');">Month</button>
                                             <button type="button" class="btn ${trendType == 'year' ? 'btn-success' : 'btn-outline-success'}" data-trend="year" onclick="event.preventDefault(); changeTrend('year');">Year</button>
@@ -236,7 +237,7 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-gradient"></i>Product Categories</h5>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-secondary" onclick="exportChart('productChart','product-categories.png')"><i class="fas fa-download"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" onclick="exportDashboardPdf('categories')"><i class="fas fa-file-pdf"></i> PDF</button>
                                         </div>
                                     </div>
                                     <canvas id="productChart" style="max-height: 300px;" height="320"></canvas>
@@ -255,8 +256,12 @@
                             <div class="col-12">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="mb-3"><i class="fas fa-bolt me-2 text-gradient"></i>Quick Actions
-                                        </h5>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="mb-0"><i class="fas fa-bolt me-2 text-gradient"></i>Quick Actions</h5>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="exportDashboardPdf('full')">
+                                                <i class="fas fa-file-pdf me-1"></i>Export Full Report
+                                            </button>
+                                        </div>
                                         <div class="row">
                                             <div class="col-md-3 mb-2">
                                                 <a href="ProductServlet" class="btn btn-outline-success w-100">
@@ -339,19 +344,25 @@
                         console.log('Parsed category data:', categoryData);
 
                         // PREPARE SALES CHART DATA
-                        const salesLabels = Object.keys(salesTrendData);
-                        const salesValues = Object.values(salesTrendData);
+                        const salesLabels = Object.keys(salesTrendData || {});
+                        const salesValues = Object.values(salesTrendData || {});
+                        
+                        console.log('Sales Labels:', salesLabels);
+                        console.log('Sales Values:', salesValues);
                         
                         // SALES CHART
                         const salesCtx = document.getElementById('salesChart');
                         if (hasChartJs && salesCtx) {
+                            // Check if we have actual sales data
+                            const hasData = salesLabels.length > 0 && salesValues.some(v => v > 0);
+                            
                             salesChart = new Chart(salesCtx, {
                                 type: 'line',
                                 data: {
-                                    labels: salesLabels.length > 0 ? salesLabels : ['No Data'],
+                                    labels: hasData ? salesLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                                     datasets: [{
-                                        label: 'Sales Amount ()',
-                                        data: salesValues.length > 0 ? salesValues : [0],
+                                        label: 'Sales Amount (₹)',
+                                        data: hasData ? salesValues : [0, 0, 0, 0, 0, 0, 0],
                                         borderColor: '#4caf50',
                                         backgroundColor: 'rgba(76, 175, 80, 0.1)',
                                         tension: 0.4,
@@ -517,11 +528,7 @@
                             if (!paymentLabels.length || totalPay === 0) {
                                 paymentSummaryEl.textContent = 'No payment data yet.';
                             } else {
-                                paymentSummaryEl.textContent = paymentLabels.map((label, idx) => {
-                                    const val = paymentValues[idx] || 0;
-                                    const pct = totalPay ? ((val / totalPay) * 100).toFixed(1) : '0.0';
-                                    return `${label}: ${pct}%`;
-                                }).join(' · ');
+                                paymentSummaryEl.textContent = '';
                             }
                         }
 
@@ -570,7 +577,18 @@
                         }
                     }
 
-                    // EXPORT CHART AS PNG
+                    // EXPORT DASHBOARD AS PDF
+                    function exportDashboardPdf(type, trend) {
+                        let url = 'ExportDashboardPdfServlet?type=' + type;
+                        if (trend) {
+                            url += '&trend=' + trend;
+                        } else if (type === 'sales') {
+                            url += '&trend=' + currentTrend;
+                        }
+                        window.location.href = url;
+                    }
+
+                    // EXPORT CHART AS PNG (kept for backward compatibility if needed)
                     function exportChart(canvasId, fileName) {
                         const canvas = document.getElementById(canvasId);
                         if (!canvas || typeof canvas.toDataURL !== 'function') {
